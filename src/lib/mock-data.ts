@@ -22,5 +22,7 @@ export const listings: Listing[] = [
     status: ListingStatus.ACTIVE,
 
     createdAt: "2026-07-03",
+
+    price: null,
   },
 ];

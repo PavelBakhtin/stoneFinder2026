@@ -31,6 +31,10 @@ export function ListingCard({ listing }: Props) {
         <p>📍 {listing.city}</p>
 
         <p>{listing.phone}</p>
+
+        <p className="font-semibold text-lg mt-2">
+            {listing.price ? `${listing.price.toLocaleString()} грн` : "Договірна"}
+        </p>
       </div>
     </article>
   );

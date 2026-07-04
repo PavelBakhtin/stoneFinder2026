@@ -38,4 +38,7 @@ export interface Listing {
   status: ListingStatus;
 
   createdAt: string;
+
+  price: number | null;
+  
 }
