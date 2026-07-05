@@ -1,3 +1,6 @@
+import Image from "next/image";
+import Link from "next/link";
+
 import { Listing } from "@/types/listing";
 
 type Props = {
@@ -6,36 +9,39 @@ type Props = {
 
 export function ListingCard({ listing }: Props) {
   return (
-    <article className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm hover:shadow-md transition">
-      <div className="flex justify-between items-start">
-        <div>
-          <p className="text-sm text-gray-500">
-            {listing.manufacturer}
-          </p>
-
-          <h2 className="text-lg font-semibold">
-            {listing.decor}
-          </h2>
+    <Link
+      href={`/listing/${listing.id}`}
+      className="overflow-hidden rounded-xl border bg-white shadow-sm transition hover:shadow-md"
+    >
+      {listing.imageUrl && (
+        <div className="relative h-56 w-full">
+          <Image
+            src={listing.imageUrl}
+            alt={listing.decor}
+            fill
+            sizes="(max-width: 768px) 100vw, 500px"
+            className="object-cover"
+          />
         </div>
+      )}
 
-        <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
-          {listing.status}
-        </span>
-      </div>
-
-      <div className="mt-4 space-y-1 text-sm">
-        <p>
-          📐 {listing.length} × {listing.width} × {listing.thickness} мм
+      <div className="p-4">
+        <p className="text-xl font-bold">
+          {listing.price
+            ? `${listing.price.toLocaleString()} грн`
+            : "Договірна"}
         </p>
 
-        <p>📍 {listing.city}</p>
+        <p className="mt-2 text-sm text-gray-500">{listing.manufacturer}</p>
 
-        <p>{listing.phone}</p>
+        <h2 className="text-lg font-semibold">{listing.decor}</h2>
 
-        <p className="font-semibold text-lg mt-2">
-            {listing.price ? `${listing.price.toLocaleString()} грн` : "Договірна"}
+        <p className="mt-2 text-sm">
+          {listing.length} × {listing.width} × {listing.thickness} мм
         </p>
+
+        <p className="text-sm text-gray-600">{listing.city}</p>
       </div>
-    </article>
+    </Link>
   );
 }

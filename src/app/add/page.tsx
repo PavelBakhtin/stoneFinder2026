@@ -7,8 +7,30 @@ async function createListing(formData: FormData) {
   "use server";
 
   const supabase = await createClient();
-
   const priceValue = formData.get("price")?.toString();
+  const imageFile = formData.get("image") as File | null;
+
+  let imageUrl: string | null = null;
+
+  if (imageFile && imageFile.size > 0) {
+    const fileExt = imageFile.name.split(".").pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = `listings/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("listing-images")
+      .upload(filePath, imageFile);
+
+    if (uploadError) {
+      throw new Error(uploadError.message);
+    }
+
+    const { data } = supabase.storage
+      .from("listing-images")
+      .getPublicUrl(filePath);
+
+    imageUrl = data.publicUrl;
+  }
 
   const { error } = await supabase.from("listings").insert({
     manufacturer: String(formData.get("manufacturer")),
@@ -21,12 +43,13 @@ async function createListing(formData: FormData) {
     city: String(formData.get("city")),
     phone: String(formData.get("phone")),
     description: String(formData.get("description") || ""),
+    image_url: imageUrl,
   });
 
   if (error) {
-    console.error(error);
     throw new Error(error.message);
   }
+
   revalidatePath("/");
   redirect("/");
 }
@@ -111,6 +134,13 @@ export default function AddListingPage() {
           type="tel"
           placeholder="Телефон"
           className="w-full rounded-lg border p-3"
+        />
+
+        <input
+          name="image"
+          type="file"
+          accept="image/*"
+          className="w-full rounded-lg border bg-white p-3"
         />
 
         <textarea

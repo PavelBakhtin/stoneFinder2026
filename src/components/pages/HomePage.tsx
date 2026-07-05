@@ -44,6 +44,7 @@ export async function HomePage({ searchParams }: Props) {
       images: [],
       status: item.status as ListingStatus,
       createdAt: item.created_at,
+      imageUrl: item.image_url,
     })) ?? [];
 
   return (

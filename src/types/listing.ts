@@ -40,5 +40,6 @@ export interface Listing {
   createdAt: string;
 
   price: number | null;
-  
+
+  imageUrl: string | null;
 }
