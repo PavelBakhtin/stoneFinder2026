@@ -74,6 +74,12 @@ export default async function ListingPage({ params }: Props) {
       >
         Подзвонити: {listing.phone}
       </a>
+      <Link
+        href={`/listing/${listing.id}/edit`}
+        className="mt-4 block rounded-lg border py-3 text-center font-medium"
+      >
+        Редагувати
+      </Link>
       <form action={deleteListing.bind(null, listing.id)} className="mt-4">
         <button
           type="submit"
