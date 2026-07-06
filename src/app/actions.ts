@@ -25,7 +25,9 @@ export async function updateListing(id: string, formData: FormData) {
   const { error } = await supabase
     .from("listings")
     .update({
-      manufacturer: String(formData.get("manufacturer")),
+      manufacturer: formData.get("manufacturer")
+        ? String(formData.get("manufacturer"))
+        : null,
       decor: String(formData.get("decor")),
       material_type: String(formData.get("materialType")),
       length: Number(formData.get("length")),
@@ -35,6 +37,7 @@ export async function updateListing(id: string, formData: FormData) {
       city: String(formData.get("city")),
       phone: String(formData.get("phone")),
       description: String(formData.get("description") || ""),
+      price_currency: String(formData.get("priceCurrency") || "UAH"),
     })
     .eq("id", id);
 

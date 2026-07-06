@@ -48,7 +48,15 @@ export default async function ListingPage({ params }: Props) {
       <p className="mt-2 text-gray-600">{listing.manufacturer}</p>
 
       <p className="mt-6 text-3xl font-bold">
-        {listing.price ? `${listing.price.toLocaleString()} грн` : "Договірна"}
+        {listing.price
+          ? `${listing.price.toLocaleString()} ${
+              listing.price_currency === "USD"
+                ? "$"
+                : listing.price_currency === "EUR"
+                  ? "€"
+                  : "грн"
+            }`
+          : "Договірна"}
       </p>
 
       <div className="mt-6 space-y-2">

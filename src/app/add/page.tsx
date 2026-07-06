@@ -33,7 +33,9 @@ async function createListing(formData: FormData) {
   }
 
   const { error } = await supabase.from("listings").insert({
-    manufacturer: String(formData.get("manufacturer")),
+    manufacturer: formData.get("manufacturer")
+      ? String(formData.get("manufacturer"))
+      : null,
     decor: String(formData.get("decor")),
     material_type: String(formData.get("materialType")),
     length: Number(formData.get("length")),
@@ -44,6 +46,7 @@ async function createListing(formData: FormData) {
     phone: String(formData.get("phone")),
     description: String(formData.get("description") || ""),
     image_url: imageUrl,
+    price_currency: String(formData.get("priceCurrency") || "UAH"),
   });
 
   if (error) throw new Error(error.message);

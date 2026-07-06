@@ -1,5 +1,5 @@
 import { cities } from "@/lib/cities";
-
+import { MaterialFields } from "@/components/listings/MaterialFields";
 type ListingFormData = {
   manufacturer: string;
   decor: string;
@@ -11,6 +11,7 @@ type ListingFormData = {
   city: string;
   phone: string;
   description: string | null;
+  price_currency: string | null;
 };
 
 type Props = {
@@ -28,36 +29,11 @@ export function ListingForm({
 }: Props) {
   return (
     <form action={action} className="space-y-4">
-      <input
-        name="manufacturer"
-        required
-        type="text"
-        placeholder="Виробник"
-        defaultValue={listing?.manufacturer ?? ""}
-        className="w-full rounded-lg border p-3"
+      <MaterialFields
+        defaultMaterialType={listing?.material_type}
+        defaultManufacturer={listing?.manufacturer}
+        defaultDecor={listing?.decor}
       />
-
-      <input
-        name="decor"
-        required
-        type="text"
-        placeholder="Декор"
-        defaultValue={listing?.decor ?? ""}
-        className="w-full rounded-lg border p-3"
-      />
-
-      <select
-        name="materialType"
-        required
-        defaultValue={listing?.material_type ?? "QUARTZ"}
-        className="w-full rounded-lg border p-3"
-      >
-        <option value="QUARTZ">Кварц</option>
-        <option value="NATURAL_STONE">Натуральний камінь</option>
-        <option value="ACRYLIC">Акрил</option>
-        <option value="CERAMIC">Кераміка</option>
-        <option value="OTHER">Інше</option>
-      </select>
 
       <div className="grid grid-cols-3 gap-3">
         <input
@@ -93,7 +69,15 @@ export function ListingForm({
         defaultValue={listing?.price ?? ""}
         className="w-full rounded-lg border p-3"
       />
-
+      <select
+        name="priceCurrency"
+        defaultValue={listing?.price_currency ?? "UAH"}
+        className="w-full rounded-lg border p-3"
+      >
+        <option value="UAH">грн</option>
+        <option value="USD">$</option>
+        <option value="EUR">€</option>
+      </select>
       <select
         name="city"
         required

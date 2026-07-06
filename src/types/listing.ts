@@ -42,4 +42,6 @@ export interface Listing {
   price: number | null;
 
   imageUrl: string | null;
+
+  priceCurrency: string | null;
 }
