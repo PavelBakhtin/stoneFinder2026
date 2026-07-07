@@ -1,6 +1,6 @@
 export const listingStatusMap = {
   ACTIVE: {
-    label: "🟢 Активне",
+    label: "🟢 В наявності",
     className: "bg-green-100 text-green-700",
   },
   RESERVED: {

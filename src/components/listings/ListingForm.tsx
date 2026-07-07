@@ -1,5 +1,6 @@
 import { cities } from "@/lib/cities";
 import { MaterialFields } from "@/components/listings/MaterialFields";
+
 type ListingFormData = {
   manufacturer: string;
   decor: string;

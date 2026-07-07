@@ -1,9 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { deleteListing } from "@/app/actions";
-import { createClient } from "@/lib/supabase/server";
 
+import { deleteListing } from "@/app/actions";
+import { formatDimensions } from "@/lib/formatDimensions";
+import { listingStatusMap } from "@/lib/listingStatus";
+import { createClient } from "@/lib/supabase/server";
+import { ListingStatus } from "@/types/listing";
 type Props = {
   params: Promise<{
     id: string;
@@ -24,6 +27,8 @@ export default async function ListingPage({ params }: Props) {
     notFound();
   }
 
+  const status = listingStatusMap[listing.status as ListingStatus];
+
   return (
     <main className="mx-auto max-w-3xl p-6">
       <Link href="/" className="mb-6 inline-block text-sm text-gray-600">
@@ -43,11 +48,23 @@ export default async function ListingPage({ params }: Props) {
         </div>
       )}
 
-      <h1 className="text-3xl font-bold">{listing.decor}</h1>
+      <span
+        className={`inline-block rounded-full px-3 py-1 text-sm font-medium ${status.className}`}
+      >
+        {status.label}
+      </span>
 
-      <p className="mt-2 text-gray-600">{listing.manufacturer}</p>
+      {listing.manufacturer && (
+        <p className="mt-4 text-gray-500">{listing.manufacturer}</p>
+      )}
 
-      <p className="mt-6 text-3xl font-bold">
+      <h1 className="mt-1 text-3xl font-bold">{listing.decor}</h1>
+
+      <p className="mt-6 rounded-xl bg-stone-100 px-4 py-3 text-2xl font-bold">
+        {formatDimensions(listing.length, listing.width, listing.thickness)}
+      </p>
+
+      <p className="mt-4 text-2xl font-semibold">
         {listing.price
           ? `${listing.price.toLocaleString()} ${
               listing.price_currency === "USD"
@@ -59,16 +76,9 @@ export default async function ListingPage({ params }: Props) {
           : "Договірна"}
       </p>
 
-      <div className="mt-6 space-y-2">
-        <p>
-          <strong>Розмір:</strong> {listing.length} × {listing.width} ×{" "}
-          {listing.thickness} мм
-        </p>
-
-        <p>
-          <strong>Місто:</strong> {listing.city}
-        </p>
-      </div>
+      <p className="mt-4 text-gray-700">
+        <strong>Місто:</strong> {listing.city}
+      </p>
 
       {listing.description && (
         <p className="mt-6 whitespace-pre-line text-gray-700">
@@ -82,12 +92,14 @@ export default async function ListingPage({ params }: Props) {
       >
         Подзвонити: {listing.phone}
       </a>
+
       <Link
         href={`/listing/${listing.id}/edit`}
         className="mt-4 block rounded-lg border py-3 text-center font-medium"
       >
         Редагувати
       </Link>
+
       <form action={deleteListing.bind(null, listing.id)} className="mt-4">
         <button
           type="submit"
