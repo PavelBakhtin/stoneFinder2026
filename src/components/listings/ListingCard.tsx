@@ -17,8 +17,8 @@ export function ListingCard({ listing }: Props) {
       href={`/listing/${listing.id}`}
       className="group overflow-hidden rounded-xl border bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
     >
-      {listing.imageUrl && (
-        <div className="relative aspect-[4/3] w-full bg-gray-100">
+      <div className="relative aspect-[4/3] w-full bg-stone-100">
+        {listing.imageUrl ? (
           <Image
             src={listing.imageUrl}
             alt={listing.decor}
@@ -26,9 +26,12 @@ export function ListingCard({ listing }: Props) {
             sizes="(max-width: 768px) 100vw, 500px"
             className="object-cover transition group-hover:scale-105"
           />
-        </div>
-      )}
-
+        ) : (
+          <div className="flex h-full items-center justify-center bg-stone-100">
+            <span className="text-sm font-medium text-stone-400">Без фото</span>
+          </div>
+        )}
+      </div>
       <div className="space-y-2 p-4">
         <div className="flex items-start justify-between gap-2">
           <div>

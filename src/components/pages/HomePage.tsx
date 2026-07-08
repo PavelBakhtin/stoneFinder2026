@@ -12,6 +12,8 @@ type Props = {
     material?: string;
     city?: string;
     sort?: string;
+    length?: string;
+    width?: string;
   }>;
 };
 
@@ -95,7 +97,23 @@ export async function HomePage({ searchParams }: Props) {
             className="w-full rounded-xl border border-gray-300 bg-white p-4 text-lg outline-none focus:border-black"
           />
         </form>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <input
+            type="number"
+            name="length"
+            defaultValue={params?.length ?? ""}
+            placeholder="Довжина від, мм"
+            className="rounded-xl border border-gray-300 bg-white p-3"
+          />
 
+          <input
+            type="number"
+            name="width"
+            defaultValue={params?.width ?? ""}
+            placeholder="Ширина від, мм"
+            className="rounded-xl border border-gray-300 bg-white p-3"
+          />
+        </div>
         <div className="flex flex-wrap gap-3">
           <SelectFilter
             name="material"
