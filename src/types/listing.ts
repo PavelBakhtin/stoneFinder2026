@@ -11,7 +11,10 @@ export enum ListingStatus {
   RESERVED = "RESERVED",
   SOLD = "SOLD",
 }
-
+export enum ListingType {
+  OFFER = "OFFER",
+  WANTED = "WANTED",
+}
 export interface Listing {
   id: string;
 
@@ -44,4 +47,6 @@ export interface Listing {
   imageUrl: string | null;
 
   priceCurrency: string | null;
+
+  listingType: ListingType;
 }

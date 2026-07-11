@@ -1,31 +1,79 @@
+import Link from "next/link";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { createClient } from "@/lib/supabase/server";
 import { ListingStatus, MaterialType } from "@/types/listing";
-import { SelectFilter } from "@/components/filters/SelectFilter";
-import { cityOptions, materialOptions, sortOptions } from "@/lib/filters";
-import Link from "next/link";
-import { ClearFilters } from "../filters/ClearFilters";
-
+import { SearchPanel } from "@/components/filters/SearchPanel";
 type Props = {
   searchParams?: Promise<{
     q?: string;
     material?: string;
     city?: string;
     sort?: string;
-    length?: string;
-    width?: string;
+    lengthFrom?: string;
+    lengthTo?: string;
+    widthFrom?: string;
+    widthTo?: string;
+    listingType?: string;
   }>;
 };
 
+type ParsedSearch = {
+  text: string;
+  firstDimension: number | null;
+  secondDimension: number | null;
+};
+
+function parseSearchQuery(query: string): ParsedSearch {
+  const dimensionPattern = /(\d{2,4})\s*[xх×*\/:]\s*(\d{2,4})/i;
+
+  const match = query.match(dimensionPattern);
+
+  if (!match) {
+    return {
+      text: query.trim(),
+      firstDimension: null,
+      secondDimension: null,
+    };
+  }
+
+  const firstDimension = Number(match[1]);
+  const secondDimension = Number(match[2]);
+
+  const text = query.replace(match[0], " ").replace(/\s+/g, " ").trim();
+
+  return {
+    text,
+    firstDimension,
+    secondDimension,
+  };
+}
+
+function sanitizeSearchText(value: string) {
+  return value
+    .replace(/[^a-zA-Zа-яА-ЯіІїЇєЄґҐ0-9\s._-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export async function HomePage({ searchParams }: Props) {
   const params = await searchParams;
+
   const query = params?.q?.trim() ?? "";
   const material = params?.material ?? "";
+  const city = params?.city ?? "";
+  const sort = params?.sort ?? "new";
+
+  const lengthFrom = Number(params?.lengthFrom) || 0;
+  const lengthTo = Number(params?.lengthTo) || 0;
+  const widthFrom = Number(params?.widthFrom) || 0;
+  const widthTo = Number(params?.widthTo) || 0;
+  const { text, firstDimension, secondDimension } = parseSearchQuery(query);
+
+  const safeText = sanitizeSearchText(text);
+
   const supabase = await createClient();
 
   let request = supabase.from("listings").select("*");
-
-  const city = params?.city ?? "";
 
   if (material) {
     request = request.eq("material_type", material);
@@ -34,22 +82,54 @@ export async function HomePage({ searchParams }: Props) {
   if (city) {
     request = request.eq("city", city);
   }
-  if (query) {
+  if (lengthFrom) {
+    request = request.gte("length", lengthFrom);
+  }
+
+  if (lengthTo) {
+    request = request.lte("length", lengthTo);
+  }
+
+  if (widthFrom) {
+    request = request.gte("width", widthFrom);
+  }
+
+  if (widthTo) {
+    request = request.lte("width", widthTo);
+  }
+  if (firstDimension && secondDimension) {
     request = request.or(
-      `manufacturer.ilike.%${query}%,decor.ilike.%${query}%,city.ilike.%${query}%`,
+      [
+        `and(length.gte.${firstDimension},width.gte.${secondDimension})`,
+        `and(length.gte.${secondDimension},width.gte.${firstDimension})`,
+      ].join(","),
     );
   }
-  const sort = params?.sort ?? "new";
 
-  switch (sort) {
-    case "old":
-      request = request.order("created_at", { ascending: true });
-      break;
-
-    default:
-      request = request.order("created_at", { ascending: false });
+  if (safeText) {
+    request = request.or(
+      [
+        `manufacturer.ilike.%${safeText}%`,
+        `decor.ilike.%${safeText}%`,
+        `city.ilike.%${safeText}%`,
+      ].join(","),
+    );
   }
-  const { data } = await request;
+
+  request =
+    sort === "old"
+      ? request.order("created_at", {
+          ascending: true,
+        })
+      : request.order("created_at", {
+          ascending: false,
+        });
+
+  const { data, error } = await request;
+
+  if (error) {
+    throw new Error(error.message);
+  }
 
   const listings =
     data?.map((item) => ({
@@ -61,14 +141,15 @@ export async function HomePage({ searchParams }: Props) {
       width: item.width,
       thickness: item.thickness,
       price: item.price,
+      priceCurrency: item.price_currency,
       city: item.city,
       phone: item.phone,
       description: item.description ?? undefined,
+      listingType: item.listing_type,
       images: [],
       status: item.status as ListingStatus,
       createdAt: item.created_at,
       imageUrl: item.image_url,
-      priceCurrency: item.price_currency,
     })) ?? [];
 
   return (
@@ -76,6 +157,7 @@ export async function HomePage({ searchParams }: Props) {
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="mb-2 text-4xl font-bold">StoneFinder</h1>
+
           <p className="text-gray-600">Знайди або опублікуй залишок каменю.</p>
         </div>
 
@@ -88,56 +170,43 @@ export async function HomePage({ searchParams }: Props) {
       </div>
 
       <div className="mb-6 space-y-3">
-        <form>
-          <input
-            name="q"
-            type="text"
-            defaultValue={query}
-            placeholder="Пошук (виробник, декор, розміри, місто)"
-            className="w-full rounded-xl border border-gray-300 bg-white p-4 text-lg outline-none focus:border-black"
-          />
-        </form>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-          <input
-            type="number"
-            name="length"
-            defaultValue={params?.length ?? ""}
-            placeholder="Довжина від, мм"
-            className="rounded-xl border border-gray-300 bg-white p-3"
-          />
-
-          <input
-            type="number"
-            name="width"
-            defaultValue={params?.width ?? ""}
-            placeholder="Ширина від, мм"
-            className="rounded-xl border border-gray-300 bg-white p-3"
-          />
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <SelectFilter
-            name="material"
-            allowEmpty
-            emptyLabel="Усі матеріали"
-            options={materialOptions}
-          />
-
-          <SelectFilter
-            name="city"
-            allowEmpty
-            emptyLabel="Україна"
-            options={cityOptions}
-          />
-
-          <SelectFilter name="sort" options={sortOptions} />
-          <ClearFilters />
-        </div>
+        <SearchPanel
+          key={[
+            query,
+            material,
+            city,
+            sort,
+            params?.lengthFrom,
+            params?.lengthTo,
+            params?.widthFrom,
+            params?.widthTo,
+          ].join("-")}
+          initialQuery={query}
+          initialMaterial={material}
+          initialCity={city}
+          initialSort={sort}
+          initialLengthFrom={params?.lengthFrom}
+          initialLengthTo={params?.lengthTo}
+          initialWidthFrom={params?.widthFrom}
+          initialWidthTo={params?.widthTo}
+        />
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 2xl:grid-cols-5">
-        {listings.map((listing) => (
-          <ListingCard key={listing.id} listing={listing} />
-        ))}
-      </div>
+
+      {listings.length > 0 ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 2xl:grid-cols-5">
+          {listings.map((listing) => (
+            <ListingCard key={listing.id} listing={listing} />
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-12 text-center">
+          <p className="font-medium">Нічого не знайдено</p>
+
+          <p className="mt-1 text-sm text-gray-500">
+            Спробуй змінити назву матеріалу або потрібний розмір.
+          </p>
+        </div>
+      )}
     </main>
   );
 }

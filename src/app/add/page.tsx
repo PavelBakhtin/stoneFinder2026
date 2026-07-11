@@ -11,10 +11,11 @@ async function createListing(formData: FormData) {
 
   const priceValue = formData.get("price")?.toString();
   const imageFile = formData.get("image") as File | null;
-
+  const listingType = String(formData.get("listing_type"));
+  const thicknessValue = formData.get("thickness")?.toString();
   let imageUrl: string | null = null;
 
-  if (imageFile && imageFile.size > 0) {
+  if (listingType === "OFFER" && imageFile && imageFile.size > 0) {
     const fileExt = imageFile.name.split(".").pop();
     const fileName = `${Date.now()}.${fileExt}`;
     const filePath = `listings/${fileName}`;
@@ -36,17 +37,21 @@ async function createListing(formData: FormData) {
     manufacturer: formData.get("manufacturer")
       ? String(formData.get("manufacturer"))
       : null,
+    listing_type: String(formData.get("listing_type")),
     decor: String(formData.get("decor")),
-    material_type: String(formData.get("materialType")),
+    material_type: String(formData.get("material_type")),
     length: Number(formData.get("length")),
     width: Number(formData.get("width")),
-    thickness: Number(formData.get("thickness")),
-    price: priceValue ? Number(priceValue) : null,
+    thickness: thicknessValue ? Number(thicknessValue) : null,
+    price: listingType === "OFFER" && priceValue ? Number(priceValue) : null,
     city: String(formData.get("city")),
     phone: String(formData.get("phone")),
     description: String(formData.get("description") || ""),
     image_url: imageUrl,
-    price_currency: String(formData.get("priceCurrency") || "UAH"),
+    price_currency:
+      listingType === "OFFER"
+        ? String(formData.get("price_currency") || "UAH")
+        : null,
   });
 
   if (error) throw new Error(error.message);
