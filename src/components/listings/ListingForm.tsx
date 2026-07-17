@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+
 import { MaterialFields } from "@/components/listings/MaterialFields";
-import { cities } from "@/lib/cities";
+import CityField from "@/components/listings/CityField";
 import { ListingType } from "@/types/listing";
 
 type ListingFormData = {
@@ -12,7 +12,7 @@ type ListingFormData = {
   material_type: string;
   length: number;
   width: number;
-  thickness: number;
+  thickness: number | null;
   price: number | null;
   price_currency: string | null;
   city: string;
@@ -28,28 +28,77 @@ type Props = {
   buttonText: string;
 };
 
+const commonThicknesses = ["3", "5", "8", "10", "12", "20", "30"];
+
+function getInitialThickness(listing?: ListingFormData) {
+  if (listing?.thickness == null) {
+    return {
+      option: "",
+      custom: "",
+    };
+  }
+
+  const thickness = String(listing.thickness);
+
+  if (commonThicknesses.includes(thickness)) {
+    return {
+      option: thickness,
+      custom: "",
+    };
+  }
+
+  return {
+    option: "other",
+    custom: thickness,
+  };
+}
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="border-b border-gray-200 pb-2">
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
+        {children}
+      </h2>
+    </div>
+  );
+}
+
 export function ListingForm({
   action,
   listing,
   showImageInput = false,
   buttonText,
 }: Props) {
+  const initialThickness = getInitialThickness(listing);
+
   const [listingType, setListingType] = useState<ListingType>(
     listing?.listing_type ?? ListingType.OFFER,
   );
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [thicknessOption, setThicknessOption] = useState(
+    initialThickness.option,
+  );
+  const [customThickness, setCustomThickness] = useState(
+    initialThickness.custom,
+  );
   const [fileName, setFileName] = useState("");
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const isOffer = listingType === ListingType.OFFER;
 
+  const thicknessValue =
+    thicknessOption === "other" ? customThickness : thicknessOption;
+
   return (
-    <form action={action} className="space-y-4">
-      <div className="space-y-2">
-        <p className="font-medium">Що ви хочете зробити?</p>
+    <form action={action} className="space-y-8">
+      <section className="space-y-4">
+        <SectionTitle>Тип оголошення</SectionTitle>
 
         <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={() => setListingType(ListingType.OFFER)}
+            aria-pressed={isOffer}
             className={`rounded-xl border p-3 font-medium transition ${
               isOffer
                 ? "border-black bg-black text-white"
@@ -62,6 +111,7 @@ export function ListingForm({
           <button
             type="button"
             onClick={() => setListingType(ListingType.WANTED)}
+            aria-pressed={!isOffer}
             className={`rounded-xl border p-3 font-medium transition ${
               !isOffer
                 ? "border-black bg-black text-white"
@@ -73,138 +123,209 @@ export function ListingForm({
         </div>
 
         <input type="hidden" name="listing_type" value={listingType} />
-      </div>
+      </section>
 
-      <MaterialFields
-        defaultMaterialType={listing?.material_type}
-        defaultManufacturer={listing?.manufacturer ?? ""}
-        defaultDecor={listing?.decor ?? ""}
-      />
+      <section className="space-y-4">
+        <SectionTitle>Матеріал</SectionTitle>
 
-      <div className="grid grid-cols-3 gap-3">
-        <input
-          name="length"
-          required
-          type="number"
-          min="1"
-          placeholder="Довжина"
-          defaultValue={listing?.length ?? ""}
-          className="min-w-0 rounded-lg border p-3"
+        <MaterialFields
+          defaultMaterialType={listing?.material_type}
+          defaultManufacturer={listing?.manufacturer ?? ""}
+          defaultDecor={listing?.decor ?? ""}
         />
+      </section>
 
-        <input
-          name="width"
-          required
-          type="number"
-          min="1"
-          placeholder="Ширина"
-          defaultValue={listing?.width ?? ""}
-          className="min-w-0 rounded-lg border p-3"
-        />
+      <section className="space-y-4">
+        <SectionTitle>Розміри</SectionTitle>
 
-        <input
-          name="thickness"
-          type="number"
-          min="1"
-          placeholder="Товщина (необов'язково)"
-          defaultValue={listing?.thickness ?? ""}
-          className="min-w-0 rounded-lg border p-3"
-        />
-      </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <label className="space-y-1.5">
+            <span className="text-sm font-medium">Довжина, мм</span>
+
+            <input
+              name="length"
+              required
+              type="number"
+              min="1"
+              max="100000"
+              inputMode="numeric"
+              placeholder="Наприклад, 1200"
+              defaultValue={listing?.length ?? ""}
+              className="w-full rounded-lg border p-3 bg-white"
+            />
+          </label>
+
+          <label className="space-y-1.5">
+            <span className="text-sm font-medium ">Ширина, мм</span>
+
+            <input
+              name="width"
+              required
+              type="number"
+              min="1"
+              max="100000"
+              inputMode="numeric"
+              placeholder="Наприклад, 600"
+              defaultValue={listing?.width ?? ""}
+              className="w-full rounded-lg border p-3 bg-white"
+            />
+          </label>
+        </div>
+
+        <div className="space-y-3">
+          <label className="block space-y-1.5">
+            <span className="text-sm font-medium bg-white">Товщина</span>
+
+            <select
+              value={thicknessOption}
+              onChange={(event) => {
+                const value = event.target.value;
+
+                setThicknessOption(value);
+
+                if (value !== "other") {
+                  setCustomThickness("");
+                }
+              }}
+              className="w-full rounded-lg border bg-white p-3"
+            >
+              <option value="">Не вказано</option>
+              <option value="3">3 мм</option>
+              <option value="5">5 мм</option>
+              <option value="8">8 мм</option>
+              <option value="10">10 мм</option>
+              <option value="12">12 мм</option>
+              <option value="20">20 мм</option>
+              <option value="30">30 мм</option>
+              <option value="other">Інша товщина…</option>
+            </select>
+          </label>
+
+          {thicknessOption === "other" && (
+            <label className="block space-y-1.5">
+              <span className="text-sm font-medium">Вкажіть товщину, мм</span>
+
+              <input
+                type="number"
+                min="1"
+                max="100000"
+                step="0.1"
+                inputMode="decimal"
+                required
+                value={customThickness}
+                onChange={(event) => setCustomThickness(event.target.value)}
+                placeholder="Наприклад, 15"
+                className="w-full rounded-lg border p-3"
+              />
+            </label>
+          )}
+
+          <input type="hidden" name="thickness" value={thicknessValue} />
+        </div>
+      </section>
 
       {isOffer && (
-        <div className="grid grid-cols-[1fr_110px] gap-3">
-          <input
-            name="price"
-            type="number"
-            min="0"
-            placeholder="Ціна або порожньо"
-            defaultValue={listing?.price ?? ""}
-            className="min-w-0 rounded-lg border p-3"
-          />
+        <section className="space-y-4">
+          <SectionTitle>Ціна</SectionTitle>
 
-          <select
-            name="price_currency"
-            defaultValue={listing?.price_currency ?? "UAH"}
-            className="rounded-lg border bg-white p-3"
-          >
-            <option value="UAH">грн</option>
-            <option value="USD">$</option>
-            <option value="EUR">€</option>
-          </select>
-        </div>
+          <div className="grid grid-cols-[minmax(0,1fr)_110px] gap-3">
+            <input
+              name="price"
+              type="number"
+              min="0"
+              step="0.01"
+              inputMode="decimal"
+              placeholder="Ціна або порожньо"
+              defaultValue={listing?.price ?? ""}
+              className="min-w-0 rounded-lg border p-3 bg-white"
+            />
+
+            <select
+              name="price_currency"
+              defaultValue={listing?.price_currency ?? "UAH"}
+              className="rounded-lg border bg-white p-3"
+            >
+              <option value="UAH">грн</option>
+              <option value="USD">$</option>
+              <option value="EUR">€</option>
+            </select>
+          </div>
+        </section>
       )}
 
-      <select
-        name="city"
-        required
-        defaultValue={listing?.city ?? ""}
-        className="w-full rounded-lg border bg-white p-3"
-      >
-        <option value="" disabled>
-          Місто
-        </option>
+      <section className="space-y-4">
+        <SectionTitle>Контакти</SectionTitle>
 
-        {cities.map((city) => (
-          <option key={city} value={city}>
-            {city}
-          </option>
-        ))}
-      </select>
+    
+<CityField initialCity={listing?.city} />
+      
 
-      <input
-        name="phone"
-        required
-        type="tel"
-        placeholder="Телефон"
-        defaultValue={listing?.phone ?? ""}
-        className="w-full rounded-lg border p-3"
-      />
+        <label className="block space-y-1.5">
+          <span className="text-sm font-medium">Телефон</span>
+
+          <input
+            name="phone"
+            required
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            placeholder="+380..."
+            defaultValue={listing?.phone ?? ""}
+            className="w-full rounded-lg border p-3 bg-white"
+          />
+        </label>
+      </section>
 
       {showImageInput && isOffer && (
-        <div className="space-y-2">
-          <p className="text-sm font-medium">Фото залишку (необов&apos;язково)</p>
+        <section className="space-y-4">
+          <SectionTitle>Фото</SectionTitle>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            name="image"
-            accept="image/*"
-            className="hidden"
-            onChange={(event) => {
-              setFileName(event.target.files?.[0]?.name ?? "");
-            }}
-          />
+          <div className="space-y-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              name="image"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={(event) => {
+                setFileName(event.target.files?.[0]?.name ?? "");
+              }}
+            />
 
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full rounded-xl border-2 border-dashed border-gray-300 p-5 text-center transition hover:border-black hover:bg-gray-50"
-          >
-            🖼 Додати фото залишку
-          </button>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full rounded-xl border-2 border-dashed border-gray-300 p-5 text-center font-medium transition hover:border-black hover:bg-gray-50"
+            >
+              {fileName ? "🖼 Змінити фото" : "🖼 Додати фото залишку"}
+            </button>
 
-          <p className="text-sm text-gray-500">
-            {fileName || "Фото не вибрано"}
-          </p>
-        </div>
+            <p className="truncate text-sm text-gray-500">
+              {fileName || "Фото не вибрано"}
+            </p>
+          </div>
+        </section>
       )}
 
-      <textarea
-        name="description"
-        rows={4}
-        placeholder={
-          isOffer
-            ? "Додаткова інформація про залишок"
-            : "Наприклад: потрібен чистовий розмір, локація не важлива"
-        }
-        defaultValue={listing?.description ?? ""}
-        className="w-full rounded-lg border p-3"
-      />
+      <section className="space-y-4">
+        <SectionTitle>Опис</SectionTitle>
+
+        <textarea
+          name="description"
+          rows={4}
+          placeholder={
+            isOffer
+              ? "Додаткова інформація про залишок"
+              : "Наприклад: потрібен чистовий розмір, локація не важлива"
+          }
+          defaultValue={listing?.description ?? ""}
+          className="w-full resize-y rounded-lg border p-3 bg-white"
+        />
+      </section>
 
       <button
         type="submit"
-        className="w-full rounded-lg bg-black py-3 font-medium text-white hover:bg-gray-800"
+        className="w-full rounded-lg bg-black py-3 font-medium text-white transition hover:bg-gray-800"
       >
         {buttonText}
       </button>

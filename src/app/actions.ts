@@ -5,6 +5,24 @@ import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
 
+function getOptionalString(formData: FormData, field: string) {
+  const value = formData.get(field)?.toString().trim();
+
+  return value ? value : null;
+}
+
+function getOptionalNumber(formData: FormData, field: string) {
+  const value = formData.get(field)?.toString().trim();
+
+  if (!value) {
+    return null;
+  }
+
+  const parsedValue = Number(value);
+
+  return Number.isFinite(parsedValue) ? parsedValue : null;
+}
+
 export async function deleteListing(id: string) {
   const supabase = await createClient();
 
@@ -17,31 +35,34 @@ export async function deleteListing(id: string) {
   revalidatePath("/");
   redirect("/");
 }
+
 export async function updateListing(id: string, formData: FormData) {
   const supabase = await createClient();
+
   const listingType = String(formData.get("listing_type"));
-  const priceValue = formData.get("price")?.toString();
-  const thicknessValue = formData.get("thickness")?.toString();
+  const isOffer = listingType === "OFFER";
+
   const { error } = await supabase
     .from("listings")
     .update({
-      manufacturer: formData.get("manufacturer")
-        ? String(formData.get("manufacturer"))
-        : null,
-      listing_type: String(formData.get("listing_type")),
-      decor: String(formData.get("decor")),
+      listing_type: listingType,
+
       material_type: String(formData.get("materialType")),
+      manufacturer: getOptionalString(formData, "manufacturer"),
+      decor: String(formData.get("decor")).trim(),
+
       length: Number(formData.get("length")),
       width: Number(formData.get("width")),
-      thickness: thicknessValue ? Number(thicknessValue) : null,
-      price: listingType === "OFFER" && priceValue ? Number(priceValue) : null,
+      thickness: getOptionalNumber(formData, "thickness"),
+
+      price: isOffer ? getOptionalNumber(formData, "price") : null,
+      price_currency: isOffer
+        ? String(formData.get("price_currency") || "UAH")
+        : null,
+
       city: String(formData.get("city")),
-      phone: String(formData.get("phone")),
-      description: String(formData.get("description") || ""),
-      price_currency:
-        listingType === "OFFER"
-          ? String(formData.get("price_currency") || "UAH")
-          : null,
+      phone: String(formData.get("phone")).trim(),
+      description: getOptionalString(formData, "description"),
     })
     .eq("id", id);
 
@@ -51,5 +72,6 @@ export async function updateListing(id: string, formData: FormData) {
 
   revalidatePath("/");
   revalidatePath(`/listing/${id}`);
+
   redirect("/");
 }

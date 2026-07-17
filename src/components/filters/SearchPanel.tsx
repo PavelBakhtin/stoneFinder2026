@@ -14,6 +14,7 @@ type Props = {
   initialLengthTo?: string;
   initialWidthFrom?: string;
   initialWidthTo?: string;
+  initialListingType?: string;
 };
 
 type SearchValues = {
@@ -25,6 +26,7 @@ type SearchValues = {
   lengthTo: string;
   widthFrom: string;
   widthTo: string;
+  listingType: string;
 };
 
 export function SearchPanel({
@@ -36,6 +38,7 @@ export function SearchPanel({
   initialLengthTo = "",
   initialWidthFrom = "",
   initialWidthTo = "",
+initialListingType = "",
 }: Props) {
   const router = useRouter();
   const pathname = usePathname();
@@ -45,7 +48,7 @@ export function SearchPanel({
   const [material, setMaterial] = useState(initialMaterial);
   const [city, setCity] = useState(initialCity);
   const [sort, setSort] = useState(initialSort);
-
+const [listingType, setListingType] = useState(initialListingType);
   const [lengthFrom, setLengthFrom] = useState(initialLengthFrom);
   const [lengthTo, setLengthTo] = useState(initialLengthTo);
   const [widthFrom, setWidthFrom] = useState(initialWidthFrom);
@@ -69,6 +72,7 @@ export function SearchPanel({
     lengthTo,
     widthFrom,
     widthTo,
+    listingType,
   };
 
   function buildUrl(nextValues: SearchValues) {
@@ -81,6 +85,7 @@ export function SearchPanel({
     setOrDelete(params, "lengthTo", nextValues.lengthTo);
     setOrDelete(params, "widthFrom", nextValues.widthFrom);
     setOrDelete(params, "widthTo", nextValues.widthTo);
+    setOrDelete(params, "listingType", nextValues.listingType);
 
     if (nextValues.sort !== "new") {
       params.set("sort", nextValues.sort);
@@ -115,7 +120,7 @@ export function SearchPanel({
 
   function clearQuery() {
     setQuery("");
-
+    
     applySearch({
       ...values,
       query: "",
@@ -159,12 +164,19 @@ export function SearchPanel({
     setWidthFrom("");
     setWidthTo("");
     setMobileDimensionsOpen(false);
-
+setListingType("");
     router.push(pathname, {
       scroll: false,
     });
   }
+function changeListingType(nextListingType: string) {
+  setListingType(nextListingType);
 
+  applySearch({
+    ...values,
+    listingType: nextListingType,
+  });
+}
   const hasDimensions =
     Boolean(lengthFrom) ||
     Boolean(lengthTo) ||
@@ -269,7 +281,43 @@ export function SearchPanel({
           />
         </div>
       </div>
+          <div className="mt-5 flex overflow-hidden rounded-xl border border-gray-300">
+  <button
+    type="button"
+    onClick={() => changeListingType("")}
+    className={`flex-1 px-4 py-3 text-sm font-medium transition ${
+      listingType === ""
+        ? "bg-black text-white"
+        : "bg-white hover:bg-gray-100"
+    }`}
+  >
+    Всі
+  </button>
 
+  <button
+    type="button"
+    onClick={() => changeListingType("OFFER")}
+    className={`flex-1 border-l border-gray-300 px-4 py-3 text-sm font-medium transition ${
+      listingType === "OFFER"
+        ? "bg-green-600 text-white"
+        : "bg-white hover:bg-gray-100"
+    }`}
+  >
+    Пропоную
+  </button>
+
+  <button
+    type="button"
+    onClick={() => changeListingType("WANTED")}
+    className={`flex-1 border-l border-gray-300 px-4 py-3 text-sm font-medium transition ${
+      listingType === "WANTED"
+        ? "bg-orange-500 text-white"
+        : "bg-white hover:bg-gray-100"
+    }`}
+  >
+    Шукаю
+  </button>
+</div>
       <div className="mt-5 flex flex-wrap gap-3">
         <select
           value={material}
@@ -318,7 +366,7 @@ export function SearchPanel({
           <button
             type="button"
             onClick={clearAll}
-            className="rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-medium hover:bg-gray-100"
+            className="rounded-xl border border-gray-300 bg-white px-4 py-3 className={tlabelClass} hover:bg-gray-100"
             title="Скинути всі фільтри"
           >
             <span className="sm:hidden">✕</span>

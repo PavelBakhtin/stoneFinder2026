@@ -8,9 +8,14 @@ type Props = {
     material?: string;
     city?: string;
     sort?: string;
+    lengthFrom?: string;
+    lengthTo?: string;
+    widthFrom?: string;
+    widthTo?: string;
+    listingType?: string;
   }>;
 };
 
-export default function Page({ searchParams }: Props) {
-  return <HomePage searchParams={searchParams} />;
+export default async function Page(props: Props) {
+  return <HomePage searchParams={props.searchParams} />;
 }

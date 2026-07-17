@@ -62,7 +62,7 @@ export async function HomePage({ searchParams }: Props) {
   const material = params?.material ?? "";
   const city = params?.city ?? "";
   const sort = params?.sort ?? "new";
-
+const listingType = params?.listingType ?? "";
   const lengthFrom = Number(params?.lengthFrom) || 0;
   const lengthTo = Number(params?.lengthTo) || 0;
   const widthFrom = Number(params?.widthFrom) || 0;
@@ -82,6 +82,9 @@ export async function HomePage({ searchParams }: Props) {
   if (city) {
     request = request.eq("city", city);
   }
+  if (listingType) {
+  request = request.eq("listing_type", listingType);
+}
   if (lengthFrom) {
     request = request.gte("length", lengthFrom);
   }
@@ -153,7 +156,7 @@ export async function HomePage({ searchParams }: Props) {
     })) ?? [];
 
   return (
-    <main className="mx-auto max-w-screen-2xl p-6">
+    <main className="mx-auto max-w-7xl p-6">
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="mb-2 text-4xl font-bold">StoneFinder</h1>
@@ -171,6 +174,7 @@ export async function HomePage({ searchParams }: Props) {
 
       <div className="mb-6 space-y-3">
         <SearchPanel
+        
           key={[
             query,
             material,
@@ -189,6 +193,7 @@ export async function HomePage({ searchParams }: Props) {
           initialLengthTo={params?.lengthTo}
           initialWidthFrom={params?.widthFrom}
           initialWidthTo={params?.widthTo}
+          initialListingType={listingType}
         />
       </div>
 
