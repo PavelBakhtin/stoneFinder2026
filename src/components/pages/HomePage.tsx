@@ -1,8 +1,9 @@
-import Link from "next/link";
+import { SearchPanel } from "@/components/filters/SearchPanel";
+import { Header } from "@/components/layout/Header";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { createClient } from "@/lib/supabase/server";
 import { ListingStatus, MaterialType } from "@/types/listing";
-import { SearchPanel } from "@/components/filters/SearchPanel";
+
 type Props = {
   searchParams?: Promise<{
     q?: string;
@@ -62,11 +63,13 @@ export async function HomePage({ searchParams }: Props) {
   const material = params?.material ?? "";
   const city = params?.city ?? "";
   const sort = params?.sort ?? "new";
-const listingType = params?.listingType ?? "";
+  const listingType = params?.listingType ?? "";
+
   const lengthFrom = Number(params?.lengthFrom) || 0;
   const lengthTo = Number(params?.lengthTo) || 0;
   const widthFrom = Number(params?.widthFrom) || 0;
   const widthTo = Number(params?.widthTo) || 0;
+
   const { text, firstDimension, secondDimension } = parseSearchQuery(query);
 
   const safeText = sanitizeSearchText(text);
@@ -82,9 +85,11 @@ const listingType = params?.listingType ?? "";
   if (city) {
     request = request.eq("city", city);
   }
+
   if (listingType) {
-  request = request.eq("listing_type", listingType);
-}
+    request = request.eq("listing_type", listingType);
+  }
+
   if (lengthFrom) {
     request = request.gte("length", lengthFrom);
   }
@@ -100,6 +105,7 @@ const listingType = params?.listingType ?? "";
   if (widthTo) {
     request = request.lte("width", widthTo);
   }
+
   if (firstDimension && secondDimension) {
     request = request.or(
       [
@@ -157,24 +163,10 @@ const listingType = params?.listingType ?? "";
 
   return (
     <main className="mx-auto max-w-7xl p-6">
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="mb-2 text-4xl font-bold">StoneFinder</h1>
-
-          <p className="text-gray-600">Знайди або опублікуй залишок каменю.</p>
-        </div>
-
-        <Link
-          href="/add"
-          className="rounded-lg bg-black px-4 py-3 text-sm font-medium text-white"
-        >
-          Додати
-        </Link>
-      </div>
+      <Header />
 
       <div className="mb-6 space-y-3">
         <SearchPanel
-        
           key={[
             query,
             material,
@@ -184,6 +176,7 @@ const listingType = params?.listingType ?? "";
             params?.lengthTo,
             params?.widthFrom,
             params?.widthTo,
+            listingType,
           ].join("-")}
           initialQuery={query}
           initialMaterial={material}

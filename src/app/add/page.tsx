@@ -8,7 +8,13 @@ async function createListing(formData: FormData) {
   "use server";
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
+  if (!user) {
+    redirect("/login");
+  }
   const priceValue = formData.get("price")?.toString();
   const imageFile = formData.get("image") as File | null;
   const listingType = String(formData.get("listing_type"));
@@ -34,6 +40,7 @@ async function createListing(formData: FormData) {
   }
 
   const { error } = await supabase.from("listings").insert({
+    user_id: user.id,
     manufacturer: formData.get("manufacturer")
       ? String(formData.get("manufacturer"))
       : null,
