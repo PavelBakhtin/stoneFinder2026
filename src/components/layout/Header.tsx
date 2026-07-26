@@ -42,6 +42,12 @@ export async function Header() {
             >
               Мої оголошення
             </Link>
+            <Link
+              href="/favorites"
+              className="rounded-lg border border-gray-300 px-4 py-3 text-sm font-medium transition hover:bg-gray-50"
+            >
+              ❤️ Обране
+            </Link>
             <form action={logout}>
               <button
                 type="submit"

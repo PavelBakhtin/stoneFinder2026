@@ -20,7 +20,7 @@ export interface Listing {
 
   materialType: MaterialType;
 
-  manufacturer: string;
+  manufacturer: string | null;
 
   decor: string;
 
@@ -28,7 +28,7 @@ export interface Listing {
 
   width: number;
 
-  thickness: number;
+  thickness: number | null;
 
   city: string;
 

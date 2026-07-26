@@ -2,7 +2,7 @@ import { SearchPanel } from "@/components/filters/SearchPanel";
 import { Header } from "@/components/layout/Header";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { createClient } from "@/lib/supabase/server";
-import { ListingStatus, MaterialType } from "@/types/listing";
+import { mapListing } from "@/lib/mapListing";
 
 type Props = {
   searchParams?: Promise<{
@@ -75,7 +75,9 @@ export async function HomePage({ searchParams }: Props) {
   const safeText = sanitizeSearchText(text);
 
   const supabase = await createClient();
-
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   let request = supabase.from("listings").select("*");
 
   if (material) {
@@ -135,31 +137,30 @@ export async function HomePage({ searchParams }: Props) {
         });
 
   const { data, error } = await request;
+  let favoriteIds = new Set<string>();
 
+  if (user && data && data.length > 0) {
+    const listingIds = data.map((item) => item.id);
+
+    const { data: favorites, error: favoritesError } = await supabase
+      .from("favorites")
+      .select("listing_id")
+      .eq("user_id", user.id)
+      .in("listing_id", listingIds);
+
+    if (favoritesError) {
+      throw new Error(favoritesError.message);
+    }
+
+    favoriteIds = new Set(
+      favorites?.map((favorite) => favorite.listing_id) ?? [],
+    );
+  }
   if (error) {
     throw new Error(error.message);
   }
 
-  const listings =
-    data?.map((item) => ({
-      id: item.id,
-      materialType: item.material_type as MaterialType,
-      manufacturer: item.manufacturer,
-      decor: item.decor,
-      length: item.length,
-      width: item.width,
-      thickness: item.thickness,
-      price: item.price,
-      priceCurrency: item.price_currency,
-      city: item.city,
-      phone: item.phone,
-      description: item.description ?? undefined,
-      listingType: item.listing_type,
-      images: [],
-      status: item.status as ListingStatus,
-      createdAt: item.created_at,
-      imageUrl: item.image_url,
-    })) ?? [];
+  const listings = data?.map(mapListing) ?? [];
 
   return (
     <main className="mx-auto max-w-7xl p-6">
@@ -193,7 +194,12 @@ export async function HomePage({ searchParams }: Props) {
       {listings.length > 0 ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 2xl:grid-cols-5">
           {listings.map((listing) => (
-            <ListingCard key={listing.id} listing={listing} />
+            <ListingCard
+              key={listing.id}
+              listing={listing}
+              isAuthenticated={Boolean(user)}
+              isFavorite={favoriteIds.has(listing.id)}
+            />
           ))}
         </div>
       ) : (

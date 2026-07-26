@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-
+import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 import { createClient } from "@/lib/supabase/server";
 
 async function login(formData: FormData) {
@@ -69,7 +69,15 @@ export default async function LoginPage({ searchParams }: Props) {
           {params.message}
         </p>
       )}
+      <GoogleLoginButton />
 
+      <div className="my-5 flex items-center gap-3">
+        <div className="h-px flex-1 bg-gray-200" />
+
+        <span className="text-sm text-gray-400">або</span>
+
+        <div className="h-px flex-1 bg-gray-200" />
+      </div>
       <form className="space-y-4">
         <input
           name="email"
