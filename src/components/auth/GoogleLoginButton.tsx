@@ -3,8 +3,11 @@
 import { useState } from "react";
 
 import { createClient } from "@/lib/supabase/client";
+type Props = {
+  next?: string;
+};
 
-export function GoogleLoginButton() {
+export function GoogleLoginButton({ next = "/" }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -14,7 +17,9 @@ export function GoogleLoginButton() {
 
     const supabase = createClient();
 
-    const redirectTo = `${window.location.origin}/auth/callback`;
+    const redirectTo =
+      `${window.location.origin}/auth/callback?next=` +
+      encodeURIComponent(next);
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",

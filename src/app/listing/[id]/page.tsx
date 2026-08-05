@@ -1,14 +1,14 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ShareButton } from "@/components/listings/ShareButton";
 import { deleteListing } from "@/app/actions";
-import { formatDimensions } from "@/lib/formatDimensions";
-import { listingStatusMap } from "@/lib/listingStatus";
+
 import { createClient } from "@/lib/supabase/server";
-import { ListingStatus } from "@/types/listing";
+
 import { FavoriteButton } from "@/components/listings/FavoriteButton";
 import { ViewCounter } from "@/components/listings/ViewCounter";
+import { ListingGallery } from "@/components/listings/ListingGallery";
+import { formatDimensions } from "@/lib/formatDimensions";
 type Props = {
   params: Promise<{
     id: string;
@@ -21,15 +21,34 @@ export default async function ListingPage({ params }: Props) {
 
   const { data: listing } = await supabase
     .from("listings")
-    .select("*")
+    .select(
+      `
+  *,
+  listing_images (
+    image_url,
+    position
+  )
+`,
+    )
     .eq("id", id)
     .single();
 
   if (!listing) {
     notFound();
   }
+  const images =
+    listing.listing_images && listing.listing_images.length > 0
+      ? listing.listing_images
+          .slice()
+          .sort(
+            (a: { position: number }, b: { position: number }) =>
+              a.position - b.position,
+          )
+          .map((image: { image_url: string }) => image.image_url)
+      : listing.image_url
+        ? [listing.image_url]
+        : [];
 
-  const status = listingStatusMap[listing.status as ListingStatus];
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -49,92 +68,127 @@ export default async function ListingPage({ params }: Props) {
     ("");
   }
   return (
-    <main className="mx-auto max-w-3xl p-6">
-      <Link href="/" className="mb-6 inline-block text-sm text-gray-600">
+    <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:py-10">
+      <Link
+        href="/"
+        className="mb-6 inline-flex items-center text-sm text-gray-600 transition hover:text-black"
+      >
         ← Назад
       </Link>
-      {listing.image_url && (
-        <div className="relative mb-6 h-80 w-full overflow-hidden rounded-xl bg-gray-200">
-          <Image
-            src={listing.image_url}
-            alt={listing.decor}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 768px"
-          />
-        </div>
-      )}
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <p>
-          {" "}
-          <span
-            className={`inline-block rounded-full px-3 py-1 ${status.className}`}
-          >
-            {status.label}
-          </span>
-        </p>
-        <FavoriteButton
-          listingId={listing.id}
-          isAuthenticated={Boolean(user)}
-          initialIsFavorite={isFavorite}
-        />
+
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)] lg:items-start">
+        <section>
+          <ListingGallery images={images} alt={listing.decor} />
+        </section>
+
+        <aside className="lg:sticky lg:top-6">
+          <div className="rounded-2xl border bg-white p-5 shadow-sm sm:p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                {listing.manufacturer && (
+                  <p className="text-sm text-gray-500">
+                    {listing.manufacturer}
+                  </p>
+                )}
+
+                <h1 className="mt-1 break-words text-3xl font-bold leading-tight">
+                  {listing.decor}
+                </h1>
+
+                <div className="mt-2">
+                  <ViewCounter
+                    listingId={listing.id}
+                    initialViews={listing.views ?? 0}
+                  />
+                </div>
+              </div>
+
+              <div className="shrink-0">
+                <FavoriteButton
+                  listingId={listing.id}
+                  isAuthenticated={Boolean(user)}
+                  initialIsFavorite={isFavorite}
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 border-t pt-6">
+              <p className="text-3xl font-bold">
+                {listing.price !== null
+                  ? `${listing.price.toLocaleString("uk-UA")} ${
+                      listing.price_currency === "USD"
+                        ? "$"
+                        : listing.price_currency === "EUR"
+                          ? "€"
+                          : "грн"
+                    }`
+                  : "Договірна"}
+              </p>
+            </div>
+
+            <div className="mt-6 space-y-3 rounded-xl bg-stone-50 p-4">
+              <p className="text-sm text-gray-500">Розміри</p>
+
+              <p className="text-xl font-bold">
+                {formatDimensions(
+                  listing.length,
+                  listing.width,
+                  listing.thickness,
+                )}
+              </p>
+
+              <p className="border-t pt-3 text-gray-700">{listing.city}</p>
+            </div>
+
+            {listing.description && (
+              <div className="mt-6">
+                <h2 className="mb-2 font-semibold">Опис</h2>
+
+                <p className="whitespace-pre-line text-gray-700">
+                  {listing.description}
+                </p>
+              </div>
+            )}
+
+            <div className="mt-8 space-y-3">
+              <a
+                href={`tel:${listing.phone}`}
+                className="block rounded-xl bg-black px-4 py-3 text-center font-medium text-white transition hover:bg-gray-800"
+              >
+                Подзвонити: {listing.phone}
+              </a>
+
+              <ShareButton />
+            </div>
+
+            {isOwner && (
+              <div className="mt-6 border-t pt-6">
+                <p className="mb-3 text-sm font-medium text-gray-500">
+                  Керування оголошенням
+                </p>
+
+                <div className="space-y-3">
+                  <Link
+                    href={`/listing/${listing.id}/edit`}
+                    className="block rounded-xl border px-4 py-3 text-center font-medium transition hover:bg-gray-50"
+                  >
+                    Редагувати
+                  </Link>
+
+                  <form action={deleteListing.bind(null, listing.id)}>
+                    <button
+                      type="submit"
+                      className="w-full rounded-xl border border-red-300 px-4 py-3 font-medium text-red-600 transition hover:bg-red-50"
+                    >
+                      Видалити оголошення
+                    </button>
+                  </form>
+                </div>
+              </div>
+            )}
+          </div>
+        </aside>
       </div>
-
-      {listing.manufacturer && (
-        <p className="mt-4 text-gray-500">{listing.manufacturer}</p>
-      )}
-      <h1 className="mt-1 text-3xl font-bold">{listing.decor}</h1>
-
-      <div className="mt-2">
-        <ViewCounter listingId={listing.id} initialViews={listing.views ?? 0} />
-      </div>
-
-      <p className="mt-4 text-2xl font-semibold">
-        {listing.price
-          ? `${listing.price.toLocaleString()} ${
-              listing.price_currency === "USD"
-                ? "$"
-                : listing.price_currency === "EUR"
-                  ? "€"
-                  : "грн"
-            }`
-          : "Договірна"}
-      </p>
-      <p className="mt-4 text-gray-700">
-        <strong>Місто:</strong> {listing.city}
-      </p>
-      {listing.description && (
-        <p className="mt-6 whitespace-pre-line text-gray-700">
-          {listing.description}
-        </p>
-      )}
-
-      <a
-        href={`tel:${listing.phone}`}
-        className="mt-8 block rounded-lg bg-black py-3 text-center font-medium text-white"
-      >
-        Подзвонити: {listing.phone}
-      </a>
-      <ShareButton />
-      {isOwner && (
-        <>
-          <Link
-            href={`/listing/${listing.id}/edit`}
-            className="mt-4 block rounded-lg border py-3 text-center font-medium"
-          >
-            Редагувати
-          </Link>
-
-          <form action={deleteListing.bind(null, listing.id)} className="mt-4">
-            <button
-              type="submit"
-              className="w-full rounded-lg border border-red-300 py-3 font-medium text-red-600"
-            >
-              Видалити оголошення
-            </button>
-          </form>
-        </>
-      )}
     </main>
   );
 }

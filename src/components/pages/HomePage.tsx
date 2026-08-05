@@ -78,7 +78,13 @@ export async function HomePage({ searchParams }: Props) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  let request = supabase.from("listings").select("*");
+  let request = supabase.from("listings").select(`
+  *,
+  listing_images (
+    image_url,
+    position
+  )
+`);
 
   if (material) {
     request = request.eq("material_type", material);

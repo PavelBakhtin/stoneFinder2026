@@ -19,7 +19,9 @@ async function login(formData: FormData) {
     redirect(`/login?error=${encodeURIComponent(error.message)}`);
   }
 
-  redirect("/");
+  const next = String(formData.get("next") || "/");
+
+  redirect(next);
 }
 
 async function signUp(formData: FormData) {
@@ -48,6 +50,7 @@ type Props = {
   searchParams?: Promise<{
     error?: string;
     message?: string;
+    next?: string;
   }>;
 };
 
@@ -69,7 +72,7 @@ export default async function LoginPage({ searchParams }: Props) {
           {params.message}
         </p>
       )}
-      <GoogleLoginButton />
+      <GoogleLoginButton next={params?.next || "/"} />
 
       <div className="my-5 flex items-center gap-3">
         <div className="h-px flex-1 bg-gray-200" />
@@ -86,7 +89,7 @@ export default async function LoginPage({ searchParams }: Props) {
           placeholder="Email"
           className="w-full rounded-lg border p-3"
         />
-
+        <input type="hidden" name="next" value={params?.next || "/"} />
         <input
           name="password"
           type="password"

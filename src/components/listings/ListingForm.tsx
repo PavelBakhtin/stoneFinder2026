@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 
 import { MaterialFields } from "@/components/listings/MaterialFields";
 import CityField from "@/components/listings/CityField";
 import { ListingType } from "@/types/listing";
+import { PhotoUploader } from "@/components/listings/PhotoUploader";
 
 type ListingFormData = {
   manufacturer: string | null;
@@ -80,10 +81,7 @@ export function ListingForm({
   const [customThickness, setCustomThickness] = useState(
     initialThickness.custom,
   );
-  const [fileName, setFileName] = useState("");
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const isOffer = listingType === ListingType.OFFER;
 
   const thicknessValue =
@@ -256,9 +254,7 @@ export function ListingForm({
       <section className="space-y-4">
         <SectionTitle>Контакти</SectionTitle>
 
-    
-<CityField initialCity={listing?.city} />
-      
+        <CityField initialCity={listing?.city} />
 
         <label className="block space-y-1.5">
           <span className="text-sm font-medium">Телефон</span>
@@ -280,30 +276,11 @@ export function ListingForm({
         <section className="space-y-4">
           <SectionTitle>Фото</SectionTitle>
 
-          <div className="space-y-2">
-            <input
-              ref={fileInputRef}
-              type="file"
-              name="image"
-              accept="image/jpeg,image/png,image/webp"
-              className="hidden"
-              onChange={(event) => {
-                setFileName(event.target.files?.[0]?.name ?? "");
-              }}
-            />
+          <PhotoUploader maxImages={3} onChange={setImageUrls} />
 
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full rounded-xl border-2 border-dashed border-gray-300 p-5 text-center font-medium transition hover:border-black hover:bg-gray-50"
-            >
-              {fileName ? "🖼 Змінити фото" : "🖼 Додати фото залишку"}
-            </button>
-
-            <p className="truncate text-sm text-gray-500">
-              {fileName || "Фото не вибрано"}
-            </p>
-          </div>
+          {imageUrls.map((url) => (
+            <input key={url} type="hidden" name="image_urls" value={url} />
+          ))}
         </section>
       )}
 

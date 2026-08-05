@@ -63,6 +63,7 @@ export default async function MyListingsPage() {
               listing={listing}
               isAuthenticated
               isFavorite={favoriteIds.has(listing.id)}
+              showOwnerActions
             />
           ))}
         </div>
