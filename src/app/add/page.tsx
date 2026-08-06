@@ -20,11 +20,16 @@ async function createListing(formData: FormData) {
   const listingType = String(formData.get("listing_type"));
   const thicknessValue = formData.get("thickness")?.toString();
   const priceValue = formData.get("price")?.toString();
+  const phone = String(formData.get("phone") || "").trim();
 
   const imageUrls = [
-    ...new Set(formData.getAll("image_urls").map(String).filter(Boolean)),
+    ...new Set(
+      formData
+        .getAll("image_urls")
+        .map(String)
+        .filter(Boolean),
+    ),
   ];
-  console.log(formData.getAll("image_urls"));
 
   if (imageUrls.length > 3) {
     throw new Error("Максимум 3 фотографії");
@@ -43,9 +48,12 @@ async function createListing(formData: FormData) {
       length: Number(formData.get("length")),
       width: Number(formData.get("width")),
       thickness: thicknessValue ? Number(thicknessValue) : null,
-      price: listingType === "OFFER" && priceValue ? Number(priceValue) : null,
+      price:
+        listingType === "OFFER" && priceValue
+          ? Number(priceValue)
+          : null,
       city: String(formData.get("city")),
-      phone: String(formData.get("phone")),
+      phone,
       description: String(formData.get("description") || ""),
       image_url: imageUrls[0] ?? null,
       price_currency:
@@ -65,13 +73,15 @@ async function createListing(formData: FormData) {
   }
 
   if (imageUrls.length > 0) {
-    const { error: imagesError } = await supabase.from("listing_images").insert(
-      imageUrls.map((imageUrl, position) => ({
-        listing_id: newListing.id,
-        image_url: imageUrl,
-        position,
-      })),
-    );
+    const { error: imagesError } = await supabase
+      .from("listing_images")
+      .insert(
+        imageUrls.map((imageUrl, position) => ({
+          listing_id: newListing.id,
+          image_url: imageUrl,
+          position,
+        })),
+      );
 
     if (imagesError) {
       await supabase
@@ -83,14 +93,7 @@ async function createListing(formData: FormData) {
       throw new Error(imagesError.message);
     }
   }
-  console.log("imageUrls", imageUrls);
 
-  console.log(
-    imageUrls.map((url, position) => ({
-      position,
-      url,
-    })),
-  );
   revalidatePath("/");
   revalidatePath("/my-listings");
 
@@ -108,12 +111,32 @@ export default async function AddListingPage() {
     redirect("/login?next=/add");
   }
 
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("phone, city")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    throw new Error(profileError.message);
+  }
+
   return (
     <main className="mx-auto max-w-2xl p-6">
-      <h1 className="mb-6 text-3xl font-bold">Додати оголошення</h1>
+      <h1 className="mb-2 text-3xl font-bold">
+        Додати оголошення
+      </h1>
+
+      <p className="mb-6 text-sm text-gray-500">
+        Поля, позначені{" "}
+        <span className="font-semibold text-red-600">*</span>,
+        обов’язкові.
+      </p>
 
       <ListingForm
         action={createListing}
+        defaultPhone={profile?.phone ?? ""}
+        defaultCity={profile?.city ?? ""}
         showImageInput
         buttonText="Опублікувати"
       />

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { mapListing } from "@/lib/mapListing";
 import { ListingCard } from "@/components/listings/ListingCard";
@@ -54,19 +53,10 @@ export default async function FavoritesPage() {
   const listings = data?.map(mapListing) ?? [];
   return (
     <main className="mx-auto max-w-7xl p-6">
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Обране</h1>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Обране</h1>
 
-          <p className="mt-1 text-gray-600">Збережені оголошення.</p>
-        </div>
-
-        <Link
-          href="/"
-          className="rounded-lg border px-4 py-3 text-sm font-medium hover:bg-gray-50"
-        >
-          На головну
-        </Link>
+        <p className="mt-1 text-gray-600">Збережені оголошення.</p>
       </div>
 
       {listings.length === 0 ? (

@@ -1,5 +1,4 @@
 import { SearchPanel } from "@/components/filters/SearchPanel";
-import { Header } from "@/components/layout/Header";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { createClient } from "@/lib/supabase/server";
 import { mapListing } from "@/lib/mapListing";
@@ -170,8 +169,6 @@ export async function HomePage({ searchParams }: Props) {
 
   return (
     <main className="mx-auto max-w-7xl p-6">
-      <Header />
-
       <div className="mb-6 space-y-3">
         <SearchPanel
           key={[

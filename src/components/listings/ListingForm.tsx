@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 
-import { MaterialFields } from "@/components/listings/MaterialFields";
 import CityField from "@/components/listings/CityField";
-import { ListingType } from "@/types/listing";
+import { MaterialFields } from "@/components/listings/MaterialFields";
 import { PhotoUploader } from "@/components/listings/PhotoUploader";
+import { ListingType } from "@/types/listing";
 
 type ListingFormData = {
   manufacturer: string | null;
@@ -25,11 +25,21 @@ type ListingFormData = {
 type Props = {
   action: (formData: FormData) => void | Promise<void>;
   listing?: ListingFormData;
+  defaultPhone?: string;
+  defaultCity?: string;
   showImageInput?: boolean;
   buttonText: string;
 };
 
 const commonThicknesses = ["3", "5", "8", "10", "12", "20", "30"];
+
+function RequiredMark() {
+  return (
+    <span className="ml-1 text-red-600" aria-hidden="true">
+      *
+    </span>
+  );
+}
 
 function getInitialThickness(listing?: ListingFormData) {
   if (listing?.thickness == null) {
@@ -54,11 +64,18 @@ function getInitialThickness(listing?: ListingFormData) {
   };
 }
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
+function SectionTitle({
+  children,
+  required = false,
+}: {
+  children: React.ReactNode;
+  required?: boolean;
+}) {
   return (
     <div className="border-b border-gray-200 pb-2">
       <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500">
         {children}
+        {required && <RequiredMark />}
       </h2>
     </div>
   );
@@ -67,6 +84,8 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 export function ListingForm({
   action,
   listing,
+  defaultPhone = "",
+  defaultCity = "",
   showImageInput = false,
   buttonText,
 }: Props) {
@@ -75,22 +94,30 @@ export function ListingForm({
   const [listingType, setListingType] = useState<ListingType>(
     listing?.listing_type ?? ListingType.OFFER,
   );
+
   const [thicknessOption, setThicknessOption] = useState(
     initialThickness.option,
   );
+
   const [customThickness, setCustomThickness] = useState(
     initialThickness.custom,
   );
+
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+
   const isOffer = listingType === ListingType.OFFER;
 
   const thicknessValue =
-    thicknessOption === "other" ? customThickness : thicknessOption;
+    thicknessOption === "other"
+      ? customThickness
+      : thicknessOption;
+
+  const initialPhone = listing?.phone ?? defaultPhone;
 
   return (
     <form action={action} className="space-y-8">
       <section className="space-y-4">
-        <SectionTitle>Тип оголошення</SectionTitle>
+        <SectionTitle required>Тип оголошення</SectionTitle>
 
         <div className="grid grid-cols-2 gap-2">
           <button
@@ -120,11 +147,15 @@ export function ListingForm({
           </button>
         </div>
 
-        <input type="hidden" name="listing_type" value={listingType} />
+        <input
+          type="hidden"
+          name="listing_type"
+          value={listingType}
+        />
       </section>
 
       <section className="space-y-4">
-        <SectionTitle>Матеріал</SectionTitle>
+        <SectionTitle required>Матеріал</SectionTitle>
 
         <MaterialFields
           defaultMaterialType={listing?.material_type}
@@ -134,11 +165,14 @@ export function ListingForm({
       </section>
 
       <section className="space-y-4">
-        <SectionTitle>Розміри</SectionTitle>
+        <SectionTitle required>Розміри</SectionTitle>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <label className="space-y-1.5">
-            <span className="text-sm font-medium">Довжина, мм</span>
+            <span className="text-sm font-medium">
+              Довжина, мм
+              <RequiredMark />
+            </span>
 
             <input
               name="length"
@@ -149,12 +183,15 @@ export function ListingForm({
               inputMode="numeric"
               placeholder="Наприклад, 1200"
               defaultValue={listing?.length ?? ""}
-              className="w-full rounded-lg border p-3 bg-white"
+              className="w-full rounded-lg border bg-white p-3"
             />
           </label>
 
           <label className="space-y-1.5">
-            <span className="text-sm font-medium ">Ширина, мм</span>
+            <span className="text-sm font-medium">
+              Ширина, мм
+              <RequiredMark />
+            </span>
 
             <input
               name="width"
@@ -165,14 +202,16 @@ export function ListingForm({
               inputMode="numeric"
               placeholder="Наприклад, 600"
               defaultValue={listing?.width ?? ""}
-              className="w-full rounded-lg border p-3 bg-white"
+              className="w-full rounded-lg border bg-white p-3"
             />
           </label>
         </div>
 
         <div className="space-y-3">
           <label className="block space-y-1.5">
-            <span className="text-sm font-medium bg-white">Товщина</span>
+            <span className="text-sm font-medium">
+              Товщина
+            </span>
 
             <select
               value={thicknessOption}
@@ -201,7 +240,10 @@ export function ListingForm({
 
           {thicknessOption === "other" && (
             <label className="block space-y-1.5">
-              <span className="text-sm font-medium">Вкажіть товщину, мм</span>
+              <span className="text-sm font-medium">
+                Вкажіть товщину, мм
+                <RequiredMark />
+              </span>
 
               <input
                 type="number"
@@ -211,14 +253,20 @@ export function ListingForm({
                 inputMode="decimal"
                 required
                 value={customThickness}
-                onChange={(event) => setCustomThickness(event.target.value)}
+                onChange={(event) =>
+                  setCustomThickness(event.target.value)
+                }
                 placeholder="Наприклад, 15"
-                className="w-full rounded-lg border p-3"
+                className="w-full rounded-lg border bg-white p-3"
               />
             </label>
           )}
 
-          <input type="hidden" name="thickness" value={thicknessValue} />
+          <input
+            type="hidden"
+            name="thickness"
+            value={thicknessValue}
+          />
         </div>
       </section>
 
@@ -235,7 +283,7 @@ export function ListingForm({
               inputMode="decimal"
               placeholder="Ціна або порожньо"
               defaultValue={listing?.price ?? ""}
-              className="min-w-0 rounded-lg border p-3 bg-white"
+              className="min-w-0 rounded-lg border bg-white p-3"
             />
 
             <select
@@ -252,12 +300,15 @@ export function ListingForm({
       )}
 
       <section className="space-y-4">
-        <SectionTitle>Контакти</SectionTitle>
+        <SectionTitle required>Контакти</SectionTitle>
 
-        <CityField initialCity={listing?.city} />
+        <CityField initialCity={listing?.city ?? defaultCity} />
 
         <label className="block space-y-1.5">
-          <span className="text-sm font-medium">Телефон</span>
+          <span className="text-sm font-medium">
+            Телефон
+            <RequiredMark />
+          </span>
 
           <input
             name="phone"
@@ -266,20 +317,29 @@ export function ListingForm({
             inputMode="tel"
             autoComplete="tel"
             placeholder="+380..."
-            defaultValue={listing?.phone ?? ""}
-            className="w-full rounded-lg border p-3 bg-white"
+            defaultValue={initialPhone}
+            className="w-full rounded-lg border bg-white p-3"
           />
         </label>
+
       </section>
 
       {showImageInput && isOffer && (
         <section className="space-y-4">
           <SectionTitle>Фото</SectionTitle>
 
-          <PhotoUploader maxImages={3} onChange={setImageUrls} />
+          <PhotoUploader
+            maxImages={3}
+            onChange={setImageUrls}
+          />
 
           {imageUrls.map((url) => (
-            <input key={url} type="hidden" name="image_urls" value={url} />
+            <input
+              key={url}
+              type="hidden"
+              name="image_urls"
+              value={url}
+            />
           ))}
         </section>
       )}
@@ -296,7 +356,7 @@ export function ListingForm({
               : "Наприклад: потрібен чистовий розмір, локація не важлива"
           }
           defaultValue={listing?.description ?? ""}
-          className="w-full resize-y rounded-lg border p-3 bg-white"
+          className="w-full resize-y rounded-lg border bg-white p-3"
         />
       </section>
 
