@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
+
 import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
 import { createClient } from "@/lib/supabase/server";
 
@@ -72,6 +74,7 @@ export default async function LoginPage({ searchParams }: Props) {
           {params.message}
         </p>
       )}
+
       <GoogleLoginButton next={params?.next || "/"} />
 
       <div className="my-5 flex items-center gap-3">
@@ -81,35 +84,51 @@ export default async function LoginPage({ searchParams }: Props) {
 
         <div className="h-px flex-1 bg-gray-200" />
       </div>
+
       <form className="space-y-4">
         <input
           name="email"
           type="email"
           required
+          autoComplete="email"
           placeholder="Email"
           className="w-full rounded-lg border p-3"
         />
+
         <input type="hidden" name="next" value={params?.next || "/"} />
-        <input
-          name="password"
-          type="password"
-          required
-          minLength={6}
-          placeholder="Пароль"
-          className="w-full rounded-lg border p-3"
-        />
+
+        <div>
+          <input
+            name="password"
+            type="password"
+            required
+            minLength={6}
+            autoComplete="current-password"
+            placeholder="Пароль"
+            className="w-full rounded-lg border p-3"
+          />
+
+          <div className="mt-2 text-right">
+            <Link
+              href="/forgot-password"
+              className="text-sm font-medium text-gray-600 transition hover:text-black"
+            >
+              Забули пароль?
+            </Link>
+          </div>
+        </div>
 
         <div className="grid grid-cols-2 gap-3">
           <button
             formAction={login}
-            className="rounded-lg bg-black py-3 font-medium text-white"
+            className="rounded-lg bg-black py-3 font-medium text-white transition hover:bg-gray-800"
           >
             Увійти
           </button>
 
           <button
             formAction={signUp}
-            className="rounded-lg border py-3 font-medium"
+            className="rounded-lg border py-3 font-medium transition hover:bg-gray-50"
           >
             Реєстрація
           </button>

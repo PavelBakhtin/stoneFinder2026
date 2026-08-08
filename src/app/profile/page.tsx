@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ProfileForm } from "@/components/profile/ProfileForm";
@@ -42,6 +43,13 @@ export default async function ProfilePage() {
     user.email?.split("@")[0] ||
     "Користувач";
 
+  const providers = Array.isArray(user.app_metadata?.providers)
+    ? user.app_metadata.providers
+    : [];
+
+  const hasEmailPassword =
+    providers.includes("email") || user.app_metadata?.provider === "email";
+
   return (
     <main className="mx-auto max-w-2xl p-6">
       <h1 className="mb-2 text-3xl font-bold">Мій профіль</h1>
@@ -63,14 +71,25 @@ export default async function ProfilePage() {
           <p className="mt-1 text-sm text-gray-500">Вхід: {user.email}</p>
         )}
 
-        <form action={logout} className="mt-4">
-          <button
-            type="submit"
-            className="rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium transition hover:bg-gray-50"
-          >
-            Вийти з облікового запису
-          </button>
-        </form>
+        <div className="mt-4 flex flex-wrap gap-3">
+          {hasEmailPassword && (
+            <Link
+              href="/update-password"
+              className="rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium transition hover:bg-gray-50"
+            >
+              Змінити пароль
+            </Link>
+          )}
+
+          <form action={logout}>
+            <button
+              type="submit"
+              className="rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium transition hover:bg-gray-50"
+            >
+              Вийти з облікового запису
+            </button>
+          </form>
+        </div>
       </section>
     </main>
   );

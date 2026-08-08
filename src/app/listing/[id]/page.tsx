@@ -14,12 +14,14 @@ type MatchRow = {
   listing_id: string;
   match_score: number;
 };
+
 type PublicProfile = {
   id: string;
   display_name: string | null;
   city: string | null;
   phone: string | null;
 };
+
 type Props = {
   params: Promise<{
     id: string;
@@ -309,24 +311,34 @@ export default async function ListingPage({ params }: Props) {
               </div>
             )}
 
-            <div className="mt-6 rounded-xl border p-4">
+            <Link
+              href={`/user/${listing.user_id}`}
+              className="mt-6 block rounded-xl border p-4 transition hover:bg-gray-50"
+              aria-label="Переглянути оголошення автора"
+            >
               <p className="text-sm text-gray-500">Автор оголошення</p>
 
-              <p className="mt-1 text-lg font-semibold">
-                {profile?.display_name ?? "Користувач"}
-              </p>
+              <div className="mt-1 flex items-end justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="text-lg font-semibold">
+                    {profile?.display_name ?? "Користувач"}
+                  </p>
 
-              {profile?.city && (
-                <p className="mt-1 text-sm text-gray-600">📍 {profile.city}</p>
-              )}
+                  {profile?.city && (
+                    <p className="mt-1 text-sm text-gray-600">
+                      📍 {profile.city}
+                    </p>
+                  )}
+                </div>
 
-              <Link
-                href={`/user/${listing.user_id}`}
-                className="mt-4 block rounded-lg border px-4 py-2.5 text-center text-sm font-medium transition hover:bg-gray-50"
-              >
-                Інші оголошення ({authorListingCount})
-              </Link>
-            </div>
+                <p className="shrink-0 pb-0.5 text-right text-sm font-medium text-gray-600">
+                  Оголошень: {authorListingCount}
+                  <span className="ml-1" aria-hidden="true">
+                    →
+                  </span>
+                </p>
+              </div>
+            </Link>
 
             <div className="mt-8 space-y-3">
               <a

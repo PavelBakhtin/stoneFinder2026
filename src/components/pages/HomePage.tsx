@@ -74,16 +74,18 @@ export async function HomePage({ searchParams }: Props) {
   const safeText = sanitizeSearchText(text);
 
   const supabase = await createClient();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
   let request = supabase.from("listings").select(`
-  *,
-  listing_images (
-    image_url,
-    position
-  )
-`);
+    *,
+    listing_images (
+      image_url,
+      position
+    )
+  `);
 
   if (material) {
     request = request.eq("material_type", material);
@@ -134,14 +136,15 @@ export async function HomePage({ searchParams }: Props) {
 
   request =
     sort === "old"
-      ? request.order("created_at", {
-          ascending: true,
-        })
-      : request.order("created_at", {
-          ascending: false,
-        });
+      ? request.order("created_at", { ascending: true })
+      : request.order("created_at", { ascending: false });
 
   const { data, error } = await request;
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
   let favoriteIds = new Set<string>();
 
   if (user && data && data.length > 0) {
@@ -161,15 +164,12 @@ export async function HomePage({ searchParams }: Props) {
       favorites?.map((favorite) => favorite.listing_id) ?? [],
     );
   }
-  if (error) {
-    throw new Error(error.message);
-  }
 
   const listings = data?.map(mapListing) ?? [];
 
   return (
-    <main className="mx-auto max-w-7xl p-6">
-      <div className="mb-6 space-y-3">
+    <main className="mx-auto max-w-7xl px-4 pb-6 pt-2 sm:p-6">
+      <div className="mb-4 sm:mb-6">
         <SearchPanel
           key={[
             query,
