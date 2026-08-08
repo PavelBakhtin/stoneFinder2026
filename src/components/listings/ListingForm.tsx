@@ -28,6 +28,7 @@ type Props = {
   defaultPhone?: string;
   defaultCity?: string;
   showImageInput?: boolean;
+  initialImages?: string[];
   buttonText: string;
 };
 
@@ -87,6 +88,7 @@ export function ListingForm({
   defaultPhone = "",
   defaultCity = "",
   showImageInput = false,
+  initialImages = [],
   buttonText,
 }: Props) {
   const initialThickness = getInitialThickness(listing);
@@ -103,7 +105,7 @@ export function ListingForm({
     initialThickness.custom,
   );
 
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [imageUrls, setImageUrls] = useState<string[]>(initialImages);
 
   const isOffer = listingType === ListingType.OFFER;
 
@@ -329,6 +331,7 @@ export function ListingForm({
           <SectionTitle>Фото</SectionTitle>
 
           <PhotoUploader
+            initialImages={initialImages}
             maxImages={3}
             onChange={setImageUrls}
           />

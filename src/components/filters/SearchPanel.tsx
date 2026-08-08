@@ -38,7 +38,7 @@ export function SearchPanel({
   initialLengthTo = "",
   initialWidthFrom = "",
   initialWidthTo = "",
-initialListingType = "",
+  initialListingType = "",
 }: Props) {
   const router = useRouter();
   const pathname = usePathname();
@@ -48,7 +48,7 @@ initialListingType = "",
   const [material, setMaterial] = useState(initialMaterial);
   const [city, setCity] = useState(initialCity);
   const [sort, setSort] = useState(initialSort);
-const [listingType, setListingType] = useState(initialListingType);
+  const [listingType, setListingType] = useState(initialListingType);
   const [lengthFrom, setLengthFrom] = useState(initialLengthFrom);
   const [lengthTo, setLengthTo] = useState(initialLengthTo);
   const [widthFrom, setWidthFrom] = useState(initialWidthFrom);
@@ -120,7 +120,7 @@ const [listingType, setListingType] = useState(initialListingType);
 
   function clearQuery() {
     setQuery("");
-    
+
     applySearch({
       ...values,
       query: "",
@@ -164,19 +164,19 @@ const [listingType, setListingType] = useState(initialListingType);
     setWidthFrom("");
     setWidthTo("");
     setMobileDimensionsOpen(false);
-setListingType("");
+    setListingType("");
     router.push(pathname, {
       scroll: false,
     });
   }
-function changeListingType(nextListingType: string) {
-  setListingType(nextListingType);
+  function changeListingType(nextListingType: string) {
+    setListingType(nextListingType);
 
-  applySearch({
-    ...values,
-    listingType: nextListingType,
-  });
-}
+    applySearch({
+      ...values,
+      listingType: nextListingType,
+    });
+  }
   const hasDimensions =
     Boolean(lengthFrom) ||
     Boolean(lengthTo) ||
@@ -281,43 +281,43 @@ function changeListingType(nextListingType: string) {
           />
         </div>
       </div>
-          <div className="mt-5 flex overflow-hidden rounded-xl border border-gray-300">
-  <button
-    type="button"
-    onClick={() => changeListingType("")}
-    className={`flex-1 px-4 py-3 text-sm font-medium transition ${
-      listingType === ""
-        ? "bg-black text-white"
-        : "bg-white hover:bg-gray-100"
-    }`}
-  >
-    Всі
-  </button>
+      <div className="mt-5 flex overflow-hidden rounded-xl border border-gray-300">
+        <button
+          type="button"
+          onClick={() => changeListingType("")}
+          className={`flex-1 px-4 py-3 text-sm font-medium transition ${
+            listingType === ""
+              ? "bg-black text-white"
+              : "bg-white hover:bg-gray-100"
+          }`}
+        >
+          Всі
+        </button>
 
-  <button
-    type="button"
-    onClick={() => changeListingType("OFFER")}
-    className={`flex-1 border-l border-gray-300 px-4 py-3 text-sm font-medium transition ${
-      listingType === "OFFER"
-        ? "bg-green-600 text-white"
-        : "bg-white hover:bg-gray-100"
-    }`}
-  >
-    Пропоную
-  </button>
+        <button
+          type="button"
+          onClick={() => changeListingType("OFFER")}
+          className={`flex-1 border-l border-gray-300 px-4 py-3 text-sm font-medium transition ${
+            listingType === "OFFER"
+              ? "bg-green-600 text-white"
+              : "bg-white hover:bg-green-400"
+          }`}
+        >
+          Пропоную
+        </button>
 
-  <button
-    type="button"
-    onClick={() => changeListingType("WANTED")}
-    className={`flex-1 border-l border-gray-300 px-4 py-3 text-sm font-medium transition ${
-      listingType === "WANTED"
-        ? "bg-orange-500 text-white"
-        : "bg-white hover:bg-gray-100"
-    }`}
-  >
-    Шукаю
-  </button>
-</div>
+        <button
+          type="button"
+          onClick={() => changeListingType("WANTED")}
+          className={`flex-1 border-l border-gray-300 px-4 py-3 text-sm font-medium transition ${
+            listingType === "WANTED"
+              ? "bg-orange-500 text-white"
+              : "bg-white hover:bg-orange-400"
+          }`}
+        >
+          Шукаю
+        </button>
+      </div>
       <div className="mt-5 flex flex-wrap gap-3">
         <select
           value={material}

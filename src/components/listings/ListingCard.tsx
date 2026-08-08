@@ -4,7 +4,7 @@ import { DeleteListingButton } from "@/components/listings/DeleteListingButton";
 import { FavoriteButton } from "@/components/listings/FavoriteButton";
 import { ListingCardGallery } from "@/components/listings/ListingCardGallery";
 import { formatDimensions } from "@/lib/formatDimensions";
-import type { Listing } from "@/types/listing";
+import { Listing } from "@/types/listing";
 
 type Props = {
   listing: Listing;
@@ -22,40 +22,35 @@ export function ListingCard({
   showOwnerActions = false,
 }: Props) {
   const isOffer = listing.listingType === "OFFER";
+  const hasImages = listing.images.length > 0;
 
-  const listingTypeClass = isOffer
+  const listingClass = isOffer
     ? "bg-green-600 text-white"
     : "bg-orange-500 text-white";
 
-  const listingTypeLabel = isOffer ? "ПРОПОНУЮ" : "ШУКАЮ";
+  const listingLabel = isOffer ? "ПРОПОНУЮ" : "ШУКАЮ";
 
   const topBorderClass = isOffer
-    ? "border-t-4 border-green-600"
-    : "border-t-4 border-orange-500";
+    ? "border-1 border-green-600"
+    : "border-1 border-orange-500";
 
-  const images =
-    listing.images?.length > 0
-      ? listing.images
-      : listing.imageUrl
-        ? [listing.imageUrl]
-        : [];
-
-  const formattedPrice =
-    listing.price !== null
-      ? `${listing.price.toLocaleString("uk-UA")} ${
-          listing.priceCurrency === "USD"
-            ? "$"
-            : listing.priceCurrency === "EUR"
-              ? "€"
-              : "грн"
-        }`
-      : "Договірна";
+  const dimensions = formatDimensions(
+    listing.length,
+    listing.width,
+    listing.thickness,
+  );
 
   return (
     <article
-      className={`group relative overflow-hidden rounded-xl border bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${topBorderClass}`}
+      className={`group relative h-full overflow-hidden rounded-xl border bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${topBorderClass}`}
     >
-      <div className="absolute right-3 top-3 z-30 flex gap-2">
+      <span
+        className={`absolute left-3 top-3 z-20 rounded-full px-3 py-1 text-xs font-semibold shadow-sm ${listingClass}`}
+      >
+        {listingLabel}
+      </span>
+
+      <div className="absolute right-3 top-3 z-20 flex gap-2">
         <FavoriteButton
           listingId={listing.id}
           initialIsFavorite={isFavorite}
@@ -79,12 +74,32 @@ export function ListingCard({
         )}
       </div>
 
-      <div className="relative aspect-[4/3] w-full bg-stone-100">
-        <ListingCardGallery images={images} alt={listing.decor} />
-      </div>
+      <Link href={`/listing/${listing.id}`} className="flex h-full flex-col">
+        <div className="relative aspect-[4/3] w-full overflow-hidden bg-stone-100">
+          {hasImages ? (
+            <ListingCardGallery images={listing.images} alt={listing.decor} />
+          ) : (
+            <div className="relative h-full w-full overflow-hidden bg-gradient-to-br from-stone-50 via-stone-100 to-stone-200">
+              <span className="sr-only">Фото не додано</span>
 
-      <Link href={`/listing/${listing.id}`} className="block">
-        <div className="space-y-3 p-4">
+              <div
+                aria-hidden="true"
+                className="absolute left-1/2 top-1/2 h-[48%] w-[66%] -translate-x-[46%] -translate-y-[56%] rotate-[-5deg] rounded-xl border border-stone-300/80 bg-white/30"
+              />
+
+              <div
+                aria-hidden="true"
+                className="absolute left-1/2 top-1/2 h-[48%] w-[66%] -translate-x-[54%] -translate-y-[44%] rotate-[3deg] rounded-xl border border-stone-300 bg-white/55 shadow-sm"
+              >
+                <div className="absolute left-[12%] top-[28%] h-px w-[72%] rotate-[7deg] bg-stone-300/70" />
+                <div className="absolute left-[24%] top-[52%] h-px w-[58%] -rotate-[5deg] bg-stone-300/60" />
+                <div className="absolute left-[10%] top-[72%] h-px w-[44%] rotate-[3deg] bg-stone-300/50" />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-1 flex-col space-y-2 p-4">
           <div>
             {listing.manufacturer && (
               <p className="text-sm text-gray-500">{listing.manufacturer}</p>
@@ -95,21 +110,25 @@ export function ListingCard({
             </h2>
           </div>
 
-          <div>
-            <span
-              className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${listingTypeClass}`}
-            >
-              {listingTypeLabel}
-            </span>
-          </div>
-
           <p className="rounded-lg bg-stone-100 px-3 py-2 text-lg font-bold">
-            {formatDimensions(listing.length, listing.width, listing.thickness)}
+            {dimensions}
           </p>
 
-          {isOffer && <p className="text-xl font-semibold">{formattedPrice}</p>}
+          <div className="mt-auto pt-2">
+            <p className="text-2xl font-semibold">
+              {listing.price
+                ? `${listing.price.toLocaleString()} ${
+                    listing.priceCurrency === "USD"
+                      ? "$"
+                      : listing.priceCurrency === "EUR"
+                        ? "€"
+                        : "грн"
+                  }`
+                : "Договірна"}
+            </p>
 
-          <p className="text-sm text-gray-500">{listing.city}</p>
+            <p className="mt-2 text-sm text-gray-500">{listing.city}</p>
+          </div>
         </div>
       </Link>
     </article>

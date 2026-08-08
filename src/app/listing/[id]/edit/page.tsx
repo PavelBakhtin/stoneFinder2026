@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { updateListing } from "@/app/actions";
 import { ListingForm } from "@/components/listings/ListingForm";
@@ -13,24 +13,53 @@ type Props = {
 
 export default async function EditListingPage({ params }: Props) {
   const { id } = await params;
-
   const supabase = await createClient();
 
-  const { data: listing } = await supabase
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect(`/login?next=/listing/${id}/edit`);
+  }
+
+  const { data: listing, error } = await supabase
     .from("listings")
-    .select("*")
+    .select(
+      `
+        *,
+        listing_images (
+          image_url,
+          position
+        )
+      `,
+    )
     .eq("id", id)
+    .eq("user_id", user.id)
     .single();
 
-  if (!listing) {
+  if (error || !listing) {
     notFound();
   }
+
+  const initialImages =
+    listing.listing_images && listing.listing_images.length > 0
+      ? listing.listing_images
+          .slice()
+          .sort(
+            (a: { position: number }, b: { position: number }) =>
+              a.position - b.position,
+          )
+          .map((image: { image_url: string }) => image.image_url)
+      : listing.image_url
+        ? [listing.image_url]
+        : [];
 
   return (
     <main className="mx-auto max-w-2xl p-6">
       <Link
         href={`/listing/${id}`}
-        className="mb-6 inline-block text-sm text-gray-600"
+        className="mb-6 inline-block text-sm text-gray-600 transition hover:text-black"
       >
         ← Назад
       </Link>
@@ -40,6 +69,8 @@ export default async function EditListingPage({ params }: Props) {
       <ListingForm
         action={updateListing.bind(null, id)}
         listing={listing}
+        showImageInput
+        initialImages={initialImages}
         buttonText="Зберегти"
       />
     </main>

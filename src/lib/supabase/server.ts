@@ -13,15 +13,14 @@ export async function createClient() {
           return cookieStore.getAll();
         },
 
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet, _headers) {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
               cookieStore.set(name, value, options);
             });
           } catch {
-            // У Server Component cookies можна читати,
-            // але не можна змінювати.
-            // Оновлення сесії пізніше винесемо в Proxy.
+            // Server Components не можуть записувати cookies.
+            // Їх оновлення виконує root proxy.ts.
           }
         },
       },
