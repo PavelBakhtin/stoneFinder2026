@@ -229,7 +229,7 @@ export function ProfileForm({
       <button
         type="submit"
         disabled={isSaving}
-        className="rounded-lg bg-black px-6 py-3 font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full rounded-lg bg-black px-6 py-3 font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
       >
         {isSaving ? "Зберігаємо…" : "Зберегти профіль"}
       </button>

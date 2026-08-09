@@ -50,10 +50,14 @@ export function MaterialFields({
 
       {!isNaturalStone && (
         <label className="block space-y-1.5">
-          <span className="text-sm font-medium">Виробник</span>
+          <span className="text-sm font-medium">
+            Виробник
+            <RequiredMark />
+          </span>
 
           <input
             name="manufacturer"
+            required
             type="text"
             placeholder="Наприклад, Avant"
             defaultValue={defaultManufacturer}

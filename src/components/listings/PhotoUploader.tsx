@@ -94,7 +94,6 @@ export function PhotoUploader({
         </p>
       </label>
 
-      <p className="text-sm text-gray-500">До {maxImages} фотографій</p>
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 

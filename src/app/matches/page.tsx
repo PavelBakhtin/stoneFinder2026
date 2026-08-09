@@ -61,20 +61,11 @@ export default async function MatchesPage() {
   if (matchRows.length === 0) {
     return (
       <main className="mx-auto max-w-7xl p-6">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">Мої збіги</h1>
-            <p className="mt-1 text-gray-600">
-              Відповідні оголошення для ваших запитів і залишків.
-            </p>
-          </div>
-
-          <Link
-            href="/my-listings"
-            className="rounded-lg border px-4 py-3 text-sm font-medium transition hover:bg-gray-50"
-          >
-            Мої оголошення
-          </Link>
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold">Мої збіги</h1>
+          <p className="mt-1 text-gray-600">
+            Відповідні оголошення для ваших запитів.
+          </p>
         </div>
 
         <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-12 text-center">
@@ -173,20 +164,11 @@ export default async function MatchesPage() {
 
   return (
     <main className="mx-auto max-w-7xl p-6">
-      <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Мої збіги</h1>
-          <p className="mt-1 text-gray-600">
-            Знайдено {totalMatches} відповідних оголошень для ваших публікацій.
-          </p>
-        </div>
-
-        <Link
-          href="/my-listings"
-          className="rounded-lg border px-4 py-3 text-sm font-medium transition hover:bg-gray-50"
-        >
-          Мої оголошення
-        </Link>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold">Мої збіги</h1>
+        <p className="mt-1 text-gray-600">
+          Знайдено {totalMatches} відповідних оголошень для ваших публікацій.
+        </p>
       </div>
 
       <div className="space-y-10">

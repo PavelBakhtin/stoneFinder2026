@@ -1,8 +1,19 @@
 import { notFound } from "next/navigation";
 
+import {
+  ListingTypeFilter,
+  ListingTypeTabs,
+} from "@/components/listings/ListingTypeTabs";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { mapListing } from "@/lib/mapListing";
 import { createClient } from "@/lib/supabase/server";
+
+type PublicProfile = {
+  id: string;
+  display_name: string | null;
+  city: string | null;
+  phone: string | null;
+};
 
 function getListingsLabel(count: number) {
   const lastTwoDigits = count % 100;
@@ -23,19 +34,35 @@ function getListingsLabel(count: number) {
   return `${count} оголошень`;
 }
 
+function parseType(value?: string): ListingTypeFilter {
+  if (value === "offer") {
+    return "OFFER";
+  }
+
+  if (value === "wanted") {
+    return "WANTED";
+  }
+
+  return "";
+}
+
 type Props = {
   params: Promise<{
     id: string;
   }>;
+  searchParams?: Promise<{
+    type?: string;
+  }>;
 };
-type PublicProfile = {
-  id: string;
-  display_name: string | null;
-  city: string | null;
-  phone: string | null;
-};
-export default async function PublicUserPage({ params }: Props) {
+
+export default async function PublicUserPage({
+  params,
+  searchParams,
+}: Props) {
   const { id } = await params;
+  const queryParams = await searchParams;
+  const activeType = parseType(queryParams?.type);
+
   const supabase = await createClient();
 
   const [profileResult, listingsResult, userResult] = await Promise.all([
@@ -65,7 +92,8 @@ export default async function PublicUserPage({ params }: Props) {
   if (listingsResult.error) {
     throw new Error(listingsResult.error.message);
   }
-const profile = profileResult.data as PublicProfile | null;
+
+  const profile = profileResult.data as PublicProfile | null;
   const listingRows = listingsResult.data ?? [];
 
   if (!profile && listingRows.length === 0) {
@@ -94,6 +122,18 @@ const profile = profileResult.data as PublicProfile | null;
     );
   }
 
+  const offerCount = listings.filter(
+    (listing) => listing.listingType === "OFFER",
+  ).length;
+
+  const wantedCount = listings.filter(
+    (listing) => listing.listingType === "WANTED",
+  ).length;
+
+  const visibleListings = activeType
+    ? listings.filter((listing) => listing.listingType === activeType)
+    : listings;
+
   return (
     <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-10">
       <section className="mb-8 rounded-2xl border bg-white p-5 shadow-sm sm:p-6">
@@ -118,15 +158,31 @@ const profile = profileResult.data as PublicProfile | null;
         )}
       </section>
 
-      <h2 className="mb-5 text-2xl font-bold">Оголошення користувача</h2>
+      <h2 className="mb-4 text-2xl font-bold">Оголошення користувача</h2>
 
-      {listings.length === 0 ? (
+      <div className="mb-5 max-w-xl">
+        <ListingTypeTabs
+          basePath={`/user/${id}`}
+          activeType={activeType}
+          allCount={listings.length}
+          offerCount={offerCount}
+          wantedCount={wantedCount}
+        />
+      </div>
+
+      {visibleListings.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-12 text-center">
-          <p className="font-medium">Активних оголошень поки немає</p>
+          <p className="font-medium">
+            {listings.length === 0
+              ? "Активних оголошень поки немає"
+              : activeType === "OFFER"
+                ? "Немає оголошень «Пропоную»"
+                : "Немає оголошень «Шукаю»"}
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          {listings.map((listing) => (
+          {visibleListings.map((listing) => (
             <ListingCard
               key={listing.id}
               listing={listing}

@@ -1,10 +1,35 @@
 import { redirect } from "next/navigation";
 
+import {
+  ListingTypeFilter,
+  ListingTypeTabs,
+} from "@/components/listings/ListingTypeTabs";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { mapListing } from "@/lib/mapListing";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function MyListingsPage() {
+type Props = {
+  searchParams?: Promise<{
+    type?: string;
+  }>;
+};
+
+function parseType(value?: string): ListingTypeFilter {
+  if (value === "offer") {
+    return "OFFER";
+  }
+
+  if (value === "wanted") {
+    return "WANTED";
+  }
+
+  return "";
+}
+
+export default async function MyListingsPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const activeType = parseType(params?.type);
+
   const supabase = await createClient();
 
   const {
@@ -12,12 +37,20 @@ export default async function MyListingsPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    redirect("/login?next=/my-listings");
   }
 
   const { data, error } = await supabase
     .from("listings")
-    .select("*")
+    .select(
+      `
+        *,
+        listing_images (
+          image_url,
+          position
+        )
+      `,
+    )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -25,7 +58,8 @@ export default async function MyListingsPage() {
     throw new Error(error.message);
   }
 
-  const listingIds = data?.map((item) => item.id) ?? [];
+  const listings = (data ?? []).map(mapListing);
+  const listingIds = listings.map((listing) => listing.id);
 
   let favoriteIds = new Set<string>();
 
@@ -45,24 +79,51 @@ export default async function MyListingsPage() {
     );
   }
 
-  const listings = data?.map(mapListing) ?? [];
+  const offerCount = listings.filter(
+    (listing) => listing.listingType === "OFFER",
+  ).length;
+
+  const wantedCount = listings.filter(
+    (listing) => listing.listingType === "WANTED",
+  ).length;
+
+  const visibleListings = activeType
+    ? listings.filter((listing) => listing.listingType === activeType)
+    : listings;
 
   return (
-    <main className="mx-auto max-w-7xl p-6">
-      <h1 className="mb-6 text-3xl font-bold">Мої оголошення</h1>
+    <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-10">
+      <h1 className="mb-5 text-2xl font-bold sm:text-3xl">Мої оголошення</h1>
 
-      {listings.length === 0 ? (
+      <div className="mb-5 max-w-xl">
+        <ListingTypeTabs
+          basePath="/my-listings"
+          activeType={activeType}
+          allCount={listings.length}
+          offerCount={offerCount}
+          wantedCount={wantedCount}
+        />
+      </div>
+
+      {visibleListings.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 bg-white px-6 py-12 text-center">
-          <p className="font-medium">Ви ще не створили жодного оголошення</p>
+          <p className="font-medium">
+            {listings.length === 0
+              ? "У вас поки немає оголошень"
+              : activeType === "OFFER"
+                ? "Немає оголошень «Пропоную»"
+                : "Немає оголошень «Шукаю»"}
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          {listings.map((listing) => (
+          {visibleListings.map((listing) => (
             <ListingCard
               key={listing.id}
               listing={listing}
               isAuthenticated
               isFavorite={favoriteIds.has(listing.id)}
+              refreshFavoriteAfterChange
               showOwnerActions
             />
           ))}

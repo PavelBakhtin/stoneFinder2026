@@ -71,20 +71,20 @@ export default async function ProfilePage() {
           <p className="mt-1 text-sm text-gray-500">Вхід: {user.email}</p>
         )}
 
-        <div className="mt-4 flex flex-wrap gap-3">
+        <div className="mt-4 grid gap-3 sm:flex sm:flex-wrap">
           {hasEmailPassword && (
             <Link
               href="/update-password"
-              className="rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium transition hover:bg-gray-50"
+              className="block w-full rounded-lg border border-gray-300 px-5 py-3 text-center text-sm font-medium transition hover:bg-gray-50 sm:w-auto"
             >
               Змінити пароль
             </Link>
           )}
 
-          <form action={logout}>
+          <form action={logout} className="w-full sm:w-auto">
             <button
               type="submit"
-              className="rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium transition hover:bg-gray-50"
+              className="w-full rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium transition hover:bg-gray-50 sm:w-auto"
             >
               Вийти з облікового запису
             </button>
