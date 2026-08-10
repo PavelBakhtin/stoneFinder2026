@@ -306,12 +306,15 @@ export function ListingForm({
           <div className="grid grid-cols-[minmax(0,1fr)_110px] gap-3">
             <input
               name="price"
-              type="number"
-              min="0"
-              step="0.01"
-              inputMode="decimal"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               placeholder="Ціна або порожньо"
               defaultValue={listing?.price ?? ""}
+              onInput={(event) => {
+                event.currentTarget.value =
+                  event.currentTarget.value.replace(/\D/g, "");
+              }}
               className="min-w-0 rounded-lg border bg-white p-3"
             />
 
