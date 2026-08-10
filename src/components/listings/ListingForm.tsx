@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useFormStatus } from "react-dom";
 
 import CityField from "@/components/listings/CityField";
 import { MaterialFields } from "@/components/listings/MaterialFields";
@@ -79,6 +80,32 @@ function SectionTitle({
         {required && <RequiredMark />}
       </h2>
     </div>
+  );
+}
+
+
+function SubmitButton({ buttonText }: { buttonText: string }) {
+  const { pending } = useFormStatus();
+
+  const pendingText =
+    buttonText === "Опублікувати" ? "Публікуємо..." : "Зберігаємо...";
+
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      aria-disabled={pending}
+      className="flex w-full items-center justify-center gap-2 rounded-lg bg-black py-3 font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-500"
+    >
+      {pending && (
+        <span
+          aria-hidden="true"
+          className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
+        />
+      )}
+
+      <span>{pending ? pendingText : buttonText}</span>
+    </button>
   );
 }
 
@@ -363,12 +390,7 @@ export function ListingForm({
         />
       </section>
 
-      <button
-        type="submit"
-        className="w-full rounded-lg bg-black py-3 font-medium text-white transition hover:bg-gray-800"
-      >
-        {buttonText}
-      </button>
+      <SubmitButton buttonText={buttonText} />
     </form>
   );
 }
