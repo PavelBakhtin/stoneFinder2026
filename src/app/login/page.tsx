@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
+import { LoginActionButtons } from "@/components/auth/LoginActionButtons";
 import { createClient } from "@/lib/supabase/server";
 
 async function login(formData: FormData) {
@@ -118,21 +119,10 @@ export default async function LoginPage({ searchParams }: Props) {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            formAction={login}
-            className="rounded-lg bg-black py-3 font-medium text-white transition hover:bg-gray-800"
-          >
-            Увійти
-          </button>
-
-          <button
-            formAction={signUp}
-            className="rounded-lg border py-3 font-medium transition hover:bg-gray-50"
-          >
-            Реєстрація
-          </button>
-        </div>
+        <LoginActionButtons
+          loginAction={login}
+          signUpAction={signUp}
+        />
       </form>
     </main>
   );

@@ -50,7 +50,10 @@ export default async function FavoritesPage() {
     throw new Error(error.message);
   }
 
-  const listings = data?.map(mapListing) ?? [];
+  const listings =
+    data
+      ?.filter((listing) => listing.user_id !== user.id)
+      .map(mapListing) ?? [];
   return (
     <main className="mx-auto max-w-7xl p-6">
       <div className="mb-6">

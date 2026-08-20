@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { cities } from "@/lib/cities";
 
 type Props = {
@@ -231,7 +232,10 @@ export function ProfileForm({
         disabled={isSaving}
         className="w-full rounded-lg bg-black px-6 py-3 font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
       >
-        {isSaving ? "Зберігаємо…" : "Зберегти профіль"}
+        <span className="flex items-center justify-center gap-2">
+          {isSaving && <LoadingSpinner className="h-4 w-4" />}
+          <span>{isSaving ? "Зберігаємо…" : "Зберегти профіль"}</span>
+        </span>
       </button>
     </form>
   );

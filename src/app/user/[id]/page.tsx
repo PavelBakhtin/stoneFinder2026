@@ -106,7 +106,9 @@ export default async function PublicUserPage({
 
   let favoriteIds = new Set<string>();
 
-  if (currentUser && listingIds.length > 0) {
+  const isOwnProfile = currentUser?.id === id;
+
+  if (currentUser && !isOwnProfile && listingIds.length > 0) {
     const { data: favorites, error: favoritesError } = await supabase
       .from("favorites")
       .select("listing_id")
@@ -189,6 +191,7 @@ export default async function PublicUserPage({
               isAuthenticated={Boolean(currentUser)}
               isFavorite={favoriteIds.has(listing.id)}
               refreshFavoriteAfterChange
+              hideFavorite={isOwnProfile}
             />
           ))}
         </div>

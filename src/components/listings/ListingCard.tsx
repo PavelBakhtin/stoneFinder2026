@@ -12,6 +12,7 @@ type Props = {
   isAuthenticated?: boolean;
   refreshFavoriteAfterChange?: boolean;
   showOwnerActions?: boolean;
+  hideFavorite?: boolean;
 };
 
 export function ListingCard({
@@ -20,6 +21,7 @@ export function ListingCard({
   isAuthenticated = false,
   refreshFavoriteAfterChange = false,
   showOwnerActions = false,
+  hideFavorite = false,
 }: Props) {
   const isOffer = listing.listingType === "OFFER";
   const hasImages = listing.images.length > 0;
@@ -51,12 +53,14 @@ export function ListingCard({
       </span>
 
       <div className="absolute right-3 top-3 z-20 flex gap-2">
-        <FavoriteButton
-          listingId={listing.id}
-          initialIsFavorite={isFavorite}
-          isAuthenticated={isAuthenticated}
-          refreshAfterChange={refreshFavoriteAfterChange}
-        />
+        {!hideFavorite && (
+          <FavoriteButton
+            listingId={listing.id}
+            initialIsFavorite={isFavorite}
+            isAuthenticated={isAuthenticated}
+            refreshAfterChange={refreshFavoriteAfterChange}
+          />
+        )}
 
         {showOwnerActions && (
           <>

@@ -27,6 +27,33 @@ export async function POST(request: Request) {
     );
   }
 
+  const { data: listing, error: listingError } = await supabase
+    .from("listings")
+    .select("user_id")
+    .eq("id", listingId)
+    .maybeSingle();
+
+  if (listingError) {
+    return NextResponse.json(
+      { error: listingError.message },
+      { status: 500 },
+    );
+  }
+
+  if (!listing) {
+    return NextResponse.json(
+      { error: "Оголошення не знайдено" },
+      { status: 404 },
+    );
+  }
+
+  if (listing.user_id === user.id) {
+    return NextResponse.json(
+      { error: "Власне оголошення не можна додати в обране" },
+      { status: 400 },
+    );
+  }
+
   const { error } = await supabase.from("favorites").insert({
     user_id: user.id,
     listing_id: listingId,

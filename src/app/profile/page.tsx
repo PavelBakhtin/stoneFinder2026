@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ProfileForm } from "@/components/profile/ProfileForm";
+import { PendingSubmitButton } from "@/components/ui/PendingSubmitButton";
 import { createClient } from "@/lib/supabase/server";
 
 async function logout() {
@@ -82,12 +83,11 @@ export default async function ProfilePage() {
           )}
 
           <form action={logout} className="w-full sm:w-auto">
-            <button
-              type="submit"
-              className="w-full rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium transition hover:bg-gray-50 sm:w-auto"
-            >
-              Вийти з облікового запису
-            </button>
+            <PendingSubmitButton
+              label="Вийти з облікового запису"
+              pendingLabel="Виходимо…"
+              className="w-full rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium transition hover:bg-gray-50 disabled:cursor-wait disabled:opacity-60 sm:w-auto"
+            />
           </form>
         </div>
       </section>

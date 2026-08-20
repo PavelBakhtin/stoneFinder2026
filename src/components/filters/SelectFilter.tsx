@@ -1,5 +1,6 @@
 "use client";
 
+import { useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 type Option = {
@@ -22,6 +23,7 @@ export function SelectFilter({
 }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
 
   const currentValue =
     searchParams.get(name) ?? (allowEmpty ? "" : (options[0]?.value ?? ""));
@@ -35,14 +37,17 @@ export function SelectFilter({
       params.delete(name);
     }
 
-    router.push(`/?${params.toString()}`);
+    startTransition(() => {
+      router.push(`/?${params.toString()}`);
+    });
   }
 
   return (
     <select
       value={currentValue}
       onChange={(event) => handleChange(event.target.value)}
-      className="rounded-lg border border-gray-300 bg-white px-3 py-3"
+      disabled={isPending}
+      className="rounded-lg border border-gray-300 bg-white px-3 py-3 disabled:cursor-wait disabled:opacity-60"
     >
       {allowEmpty && <option value="">{emptyLabel}</option>}
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { cityOptions, materialOptions, sortOptions } from "@/lib/filters";
 
 type Props = {
@@ -42,6 +43,7 @@ export function SearchPanel({
 }: Props) {
   const router = useRouter();
   const pathname = usePathname();
+  const [isPending, startTransition] = useTransition();
 
   const [query, setQuery] = useState(initialQuery);
   const [material, setMaterial] = useState(initialMaterial);
@@ -117,8 +119,10 @@ export function SearchPanel({
   }
 
   function applySearch(nextValues: SearchValues = values) {
-    router.push(buildUrl(nextValues), {
-      scroll: false,
+    startTransition(() => {
+      router.push(buildUrl(nextValues), {
+        scroll: false,
+      });
     });
   }
 
@@ -209,6 +213,7 @@ export function SearchPanel({
   return (
     <form
       onSubmit={handleSubmit}
+      aria-busy={isPending}
       className="rounded-2xl border border-gray-200 bg-white p-3 shadow-sm sm:p-5"
     >
       <label htmlFor="listing-search" className="sr-only">
@@ -230,6 +235,7 @@ export function SearchPanel({
             <button
               type="button"
               onClick={clearQuery}
+              disabled={isPending}
               aria-label="Очистити пошуковий запит"
               title="Очистити пошуковий запит"
               className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100 hover:text-black"
@@ -241,13 +247,20 @@ export function SearchPanel({
 
         <button
           type="submit"
+          disabled={isPending}
           aria-label="Виконати пошук"
-          className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-xl bg-black text-lg text-white transition hover:bg-gray-800 sm:w-auto sm:px-6 sm:text-sm sm:font-medium"
+          className="flex h-[50px] w-[50px] shrink-0 items-center justify-center gap-2 rounded-xl bg-black text-lg text-white transition hover:bg-gray-800 disabled:cursor-wait disabled:opacity-60 sm:w-auto sm:px-6 sm:text-sm sm:font-medium"
         >
-          <span className="sm:hidden" aria-hidden="true">
-            🔍
+          {isPending ? (
+            <LoadingSpinner className="h-5 w-5" />
+          ) : (
+            <span className="sm:hidden" aria-hidden="true">
+              🔍
+            </span>
+          )}
+          <span className="hidden sm:inline">
+            {isPending ? "Шукаємо…" : "Пошук"}
           </span>
-          <span className="hidden sm:inline">Пошук</span>
         </button>
       </div>
 
@@ -256,6 +269,7 @@ export function SearchPanel({
           active={listingType === ""}
           onClick={() => changeListingType("")}
           activeClass="bg-black text-white"
+          disabled={isPending}
         >
           Всі
         </TypeButton>
@@ -265,6 +279,7 @@ export function SearchPanel({
           onClick={() => changeListingType("OFFER")}
           activeClass="bg-green-600 text-white"
           withBorder
+          disabled={isPending}
         >
           Пропоную
         </TypeButton>
@@ -274,6 +289,7 @@ export function SearchPanel({
           onClick={() => changeListingType("WANTED")}
           activeClass="bg-orange-500 text-white"
           withBorder
+          disabled={isPending}
         >
           Шукаю
         </TypeButton>
@@ -304,7 +320,8 @@ export function SearchPanel({
               value={material}
               onChange={(event) => changeMaterial(event.target.value)}
               aria-label="Тип матеріалу"
-              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3"
+              disabled={isPending}
+              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 disabled:cursor-wait disabled:opacity-60"
             >
               <option value="">Усі матеріали</option>
 
@@ -319,7 +336,8 @@ export function SearchPanel({
               value={city}
               onChange={(event) => changeCity(event.target.value)}
               aria-label="Місто"
-              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3"
+              disabled={isPending}
+              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 disabled:cursor-wait disabled:opacity-60"
             >
               <option value="">Україна</option>
 
@@ -334,7 +352,8 @@ export function SearchPanel({
               value={sort}
               onChange={(event) => changeSort(event.target.value)}
               aria-label="Сортування"
-              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3"
+              disabled={isPending}
+              className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 disabled:cursor-wait disabled:opacity-60"
             >
               {sortOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -371,7 +390,8 @@ export function SearchPanel({
               <button
                 type="button"
                 onClick={clearAdvanced}
-                className="text-sm font-medium text-gray-500 transition hover:text-black"
+                disabled={isPending}
+                className="text-sm font-medium text-gray-500 transition hover:text-black disabled:cursor-wait disabled:opacity-60"
               >
                 Скинути фільтри
               </button>
@@ -381,9 +401,11 @@ export function SearchPanel({
 
             <button
               type="submit"
-              className="rounded-xl bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-gray-800"
+              disabled={isPending}
+              className="flex items-center justify-center gap-2 rounded-xl bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-gray-800 disabled:cursor-wait disabled:opacity-60"
             >
-              Застосувати
+              {isPending && <LoadingSpinner className="h-4 w-4" />}
+              <span>{isPending ? "Застосовуємо…" : "Застосувати"}</span>
             </button>
           </div>
         </div>
@@ -397,6 +419,7 @@ type TypeButtonProps = {
   onClick: () => void;
   activeClass: string;
   withBorder?: boolean;
+  disabled?: boolean;
   children: React.ReactNode;
 };
 
@@ -405,13 +428,15 @@ function TypeButton({
   onClick,
   activeClass,
   withBorder = false,
+  disabled = false,
   children,
 }: TypeButtonProps) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex-1 px-3 py-2.5 text-sm font-medium transition ${
+      disabled={disabled}
+      className={`flex-1 px-3 py-2.5 text-sm font-medium transition disabled:cursor-wait disabled:opacity-60 ${
         withBorder ? "border-l border-gray-300" : ""
       } ${active ? activeClass : "bg-white hover:bg-gray-100"}`}
     >

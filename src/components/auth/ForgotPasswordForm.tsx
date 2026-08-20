@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { createClient } from "@/lib/supabase/client";
 
 export function ForgotPasswordForm() {
@@ -94,7 +95,10 @@ export function ForgotPasswordForm() {
         disabled={pending}
         className="w-full rounded-lg bg-black px-5 py-3 font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {pending ? "Надсилаємо..." : "Надіслати посилання"}
+        <span className="flex items-center justify-center gap-2">
+          {pending && <LoadingSpinner className="h-4 w-4" />}
+          <span>{pending ? "Надсилаємо..." : "Надіслати посилання"}</span>
+        </span>
       </button>
     </form>
   );

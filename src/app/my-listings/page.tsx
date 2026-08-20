@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import {
@@ -59,25 +60,6 @@ export default async function MyListingsPage({ searchParams }: Props) {
   }
 
   const listings = (data ?? []).map(mapListing);
-  const listingIds = listings.map((listing) => listing.id);
-
-  let favoriteIds = new Set<string>();
-
-  if (listingIds.length > 0) {
-    const { data: favorites, error: favoritesError } = await supabase
-      .from("favorites")
-      .select("listing_id")
-      .eq("user_id", user.id)
-      .in("listing_id", listingIds);
-
-    if (favoritesError) {
-      throw new Error(favoritesError.message);
-    }
-
-    favoriteIds = new Set(
-      favorites?.map((favorite) => favorite.listing_id) ?? [],
-    );
-  }
 
   const offerCount = listings.filter(
     (listing) => listing.listingType === "OFFER",
@@ -114,6 +96,22 @@ export default async function MyListingsPage({ searchParams }: Props) {
                 ? "Немає оголошень «Пропоную»"
                 : "Немає оголошень «Шукаю»"}
           </p>
+
+          {listings.length === 0 && (
+            <>
+              <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">
+                Додайте перше оголошення про залишок каменю або матеріал, який
+                шукаєте.
+              </p>
+
+              <Link
+                href="/add"
+                className="mt-5 inline-flex items-center justify-center rounded-xl bg-black px-5 py-3 font-semibold text-white transition hover:bg-gray-800"
+              >
+                + Нове оголошення
+              </Link>
+            </>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -122,9 +120,8 @@ export default async function MyListingsPage({ searchParams }: Props) {
               key={listing.id}
               listing={listing}
               isAuthenticated
-              isFavorite={favoriteIds.has(listing.id)}
-              refreshFavoriteAfterChange
               showOwnerActions
+              hideFavorite
             />
           ))}
         </div>

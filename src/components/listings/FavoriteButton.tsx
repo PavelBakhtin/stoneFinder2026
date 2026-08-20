@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
+
 type Props = {
   listingId: string;
   initialIsFavorite: boolean;
@@ -52,9 +54,6 @@ export function FavoriteButton({
           listingId,
         }),
       });
-      if (refreshAfterChange) {
-        router.refresh();
-      }
       if (response.status === 401) {
         setIsFavorite(previousValue);
         router.push("/login");
@@ -67,6 +66,10 @@ export function FavoriteButton({
         };
 
         throw new Error(result.error || "Favorite request failed");
+      }
+
+      if (refreshAfterChange) {
+        router.refresh();
       }
     } catch (error) {
       setIsFavorite(previousValue);
@@ -85,7 +88,13 @@ export function FavoriteButton({
       title={isFavorite ? "Прибрати з обраного" : "Додати в обране"}
       className={`flex h-10 w-10 items-center justify-center rounded-full bg-white text-xl shadow transition hover:scale-105 disabled:cursor-wait disabled:opacity-70 ${className}`}
     >
-      {isFavorite ? "❤️" : "🤍"}
+      {isPending ? (
+        <LoadingSpinner className="h-5 w-5" />
+      ) : isFavorite ? (
+        "❤️"
+      ) : (
+        "🤍"
+      )}
     </button>
   );
 }

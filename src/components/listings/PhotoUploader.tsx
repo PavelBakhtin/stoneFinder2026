@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { ChangeEvent, useRef, useState } from "react";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { uploadListingImages } from "@/lib/uploadListingImages";
 
 type Props = {
@@ -82,11 +83,16 @@ export function PhotoUploader({
           disabled={isUploading}
           className="w-full rounded-xl border-2 border-dashed border-gray-300 p-6 text-center transition hover:border-black hover:bg-gray-50 disabled:opacity-50"
         >
-          {isUploading
-            ? "Завантаження..."
-            : imageUrls.length === 0
-              ? "🖼 Додати фотографії"
-              : "🖼 Додати ще фотографії"}
+          <span className="flex items-center justify-center gap-2">
+            {isUploading && <LoadingSpinner className="h-5 w-5" />}
+            <span>
+              {isUploading
+                ? "Завантаження..."
+                : imageUrls.length === 0
+                  ? "🖼 Додати фотографії"
+                  : "🖼 Додати ще фотографії"}
+            </span>
+          </span>
         </button>
 
         <p className="text-sm text-gray-500">

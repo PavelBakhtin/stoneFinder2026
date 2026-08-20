@@ -6,6 +6,7 @@ import { useFormStatus } from "react-dom";
 import CityField from "@/components/listings/CityField";
 import { MaterialFields } from "@/components/listings/MaterialFields";
 import { PhotoUploader } from "@/components/listings/PhotoUploader";
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { ListingType } from "@/types/listing";
 
 type ListingFormData = {
@@ -97,12 +98,7 @@ function SubmitButton({ buttonText }: { buttonText: string }) {
       aria-disabled={pending}
       className="flex w-full items-center justify-center gap-2 rounded-lg bg-black py-3 font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-500"
     >
-      {pending && (
-        <span
-          aria-hidden="true"
-          className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
-        />
-      )}
+      {pending && <LoadingSpinner className="h-4 w-4" />}
 
       <span>{pending ? pendingText : buttonText}</span>
     </button>

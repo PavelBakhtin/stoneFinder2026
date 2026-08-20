@@ -165,6 +165,14 @@ export async function HomePage({ searchParams }: Props) {
     );
   }
 
+  const ownListingIds = new Set(
+    user
+      ? (data ?? [])
+          .filter((item) => item.user_id === user.id)
+          .map((item) => item.id)
+      : [],
+  );
+
   const listings = data?.map(mapListing) ?? [];
 
   return (
@@ -202,6 +210,7 @@ export async function HomePage({ searchParams }: Props) {
               listing={listing}
               isAuthenticated={Boolean(user)}
               isFavorite={favoriteIds.has(listing.id)}
+              hideFavorite={ownListingIds.has(listing.id)}
             />
           ))}
         </div>

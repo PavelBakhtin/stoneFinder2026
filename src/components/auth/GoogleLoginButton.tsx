@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { createClient } from "@/lib/supabase/client";
 
 type Props = {
@@ -55,12 +56,16 @@ export function GoogleLoginButton({ next = "/" }: Props) {
         disabled={pending}
         className="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 font-medium transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        <span
-          aria-hidden="true"
-          className="flex h-5 w-5 items-center justify-center font-bold"
-        >
-          G
-        </span>
+        {pending ? (
+          <LoadingSpinner className="h-5 w-5" />
+        ) : (
+          <span
+            aria-hidden="true"
+            className="flex h-5 w-5 items-center justify-center font-bold"
+          >
+            G
+          </span>
+        )}
 
         {pending ? "Перенаправлення..." : "Продовжити через Google"}
       </button>

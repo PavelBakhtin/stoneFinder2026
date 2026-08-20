@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { deleteListing } from "@/app/actions";
+import { DeleteListingButton } from "@/components/listings/DeleteListingButton";
 import { FavoriteButton } from "@/components/listings/FavoriteButton";
 import { ListingGallery } from "@/components/listings/ListingGallery";
 import { ShareButton } from "@/components/listings/ShareButton";
@@ -131,7 +131,7 @@ export default async function ListingPage({ params }: Props) {
       );
   }
 
-  if (user) {
+  if (user && !isOwner) {
     const { data: favorite, error: favoriteError } = await supabase
       .from("favorites")
       .select("listing_id")
@@ -262,13 +262,15 @@ export default async function ListingPage({ params }: Props) {
                 </div>
               </div>
 
-              <div className="shrink-0">
-                <FavoriteButton
-                  listingId={listing.id}
-                  isAuthenticated={Boolean(user)}
-                  initialIsFavorite={isFavorite}
-                />
-              </div>
+              {!isOwner && (
+                <div className="shrink-0">
+                  <FavoriteButton
+                    listingId={listing.id}
+                    isAuthenticated={Boolean(user)}
+                    initialIsFavorite={isFavorite}
+                  />
+                </div>
+              )}
             </div>
 
             <div className="mt-6 border-t pt-6">
@@ -367,14 +369,10 @@ export default async function ListingPage({ params }: Props) {
                     Редагувати
                   </Link>
 
-                  <form action={deleteListing.bind(null, listing.id)}>
-                    <button
-                      type="submit"
-                      className="w-full rounded-xl border border-red-300 px-4 py-3 font-medium text-red-600 transition hover:bg-red-50"
-                    >
-                      Видалити оголошення
-                    </button>
-                  </form>
+                  <DeleteListingButton
+                    listingId={listing.id}
+                    variant="full"
+                  />
                 </div>
               </div>
             )}
