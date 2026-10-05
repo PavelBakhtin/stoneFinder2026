@@ -1,7 +1,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 
 import { ListingForm } from "@/components/listings/ListingForm";
+import { notifyMatchedListingOwners } from "@/lib/push/matchNotifications";
 import { createClient } from "@/lib/supabase/server";
 
 async function createListing(formData: FormData) {
@@ -94,8 +96,51 @@ async function createListing(formData: FormData) {
     }
   }
 
+  const { data: matchData, error: matchError } = await supabase.rpc(
+    "find_listing_matches",
+    {
+      target_listing_id: newListing.id,
+    },
+  );
+
+  if (matchError) {
+    console.error("Не вдалося перевірити збіги для push", matchError);
+  } else {
+    const matchedListingIds = [
+      ...new Set(
+        ((matchData ?? []) as Array<{ listing_id: string }>)
+          .map((match) => match.listing_id)
+          .filter(Boolean),
+      ),
+    ];
+
+    if (matchedListingIds.length > 0) {
+      const manufacturerValue = formData.get("manufacturer");
+
+      after(async () => {
+        await notifyMatchedListingOwners({
+          sourceListing: {
+            id: newListing.id,
+            userId: user.id,
+            listingType,
+            manufacturer: manufacturerValue
+              ? String(manufacturerValue)
+              : null,
+            decor: String(formData.get("decor")),
+            length: Number(formData.get("length")),
+            width: Number(formData.get("width")),
+            thickness: thicknessValue ? Number(thicknessValue) : null,
+            city: String(formData.get("city")),
+          },
+          matchedListingIds,
+        });
+      });
+    }
+  }
+
   revalidatePath("/");
   revalidatePath("/my-listings");
+  revalidatePath("/matches");
 
   redirect("/");
 }

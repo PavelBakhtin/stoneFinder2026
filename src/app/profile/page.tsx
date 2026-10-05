@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ProfileForm } from "@/components/profile/ProfileForm";
+import { PushNotificationsCard } from "@/components/pwa/PushNotificationsCard";
 import { PendingSubmitButton } from "@/components/ui/PendingSubmitButton";
 import { createClient } from "@/lib/supabase/server";
 
@@ -64,6 +65,8 @@ export default async function ProfilePage() {
         initialPhone={profile?.phone ?? ""}
         initialCity={profile?.city ?? ""}
       />
+
+      <PushNotificationsCard />
 
       <section className="mt-10 border-t border-gray-200 pt-6">
         <h2 className="text-lg font-semibold">Обліковий запис</h2>
