@@ -42,6 +42,10 @@ export function HeaderTopActions({ isAuthenticated }: Props) {
                 Збіги
               </Link>
 
+              <Link href="/messages" className={desktopLinkClass}>
+                Повідомлення
+              </Link>
+
               <Link href="/favorites" className={desktopLinkClass}>
                 Обране
               </Link>
@@ -68,6 +72,17 @@ export function HeaderTopActions({ isAuthenticated }: Props) {
       </div>
 
       <div className="flex shrink-0 items-center gap-3 lg:hidden">
+        {isAuthenticated && (
+          <Link
+            href="/messages"
+            aria-label="Повідомлення"
+            title="Повідомлення"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border text-lg transition hover:bg-gray-50"
+          >
+            <span aria-hidden="true">💬</span>
+          </Link>
+        )}
+
         {!isAuthenticated && !hideLogin && (
           <Link
             href="/login"

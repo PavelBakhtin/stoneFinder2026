@@ -51,6 +51,25 @@ function buildNotification(listing: SourceListing) {
   };
 }
 
+function buildSourceOwnerNotification(
+  listing: SourceListing,
+  matchCount: number,
+) {
+  const listingName = formatListingName(listing);
+
+  if (listing.listingType === "WANTED") {
+    return {
+      title: "Є відповідний матеріал",
+      body: `${listingName} · збігів: ${matchCount}`,
+    };
+  }
+
+  return {
+    title: "Ваш матеріал шукають",
+    body: `${listingName} · збігів: ${matchCount}`,
+  };
+}
+
 export async function notifyMatchedListingOwners({
   sourceListing,
   matchedListingIds,
@@ -87,7 +106,7 @@ export async function notifyMatchedListingOwners({
       return;
     }
 
-    const recipientIds = [
+    const matchedOwnerIds = [
       ...new Set(
         (matchedListings ?? [])
           .map((listing) => listing.user_id as string)
@@ -95,6 +114,10 @@ export async function notifyMatchedListingOwners({
             (userId) => Boolean(userId) && userId !== sourceListing.userId,
           ),
       ),
+    ];
+
+    const recipientIds = [
+      ...new Set([...matchedOwnerIds, sourceListing.userId]),
     ];
 
     if (recipientIds.length === 0) {
@@ -133,6 +156,10 @@ export async function notifyMatchedListingOwners({
     }
 
     const notification = buildNotification(sourceListing);
+    const sourceOwnerNotification = buildSourceOwnerNotification(
+      sourceListing,
+      uniqueMatchIds.length,
+    );
 
     await Promise.all(
       recipientIds.map(async (recipientUserId) => {
@@ -158,13 +185,21 @@ export async function notifyMatchedListingOwners({
           return;
         }
 
+        const userNotification =
+          recipientUserId === sourceListing.userId
+            ? sourceOwnerNotification
+            : notification;
+
         await Promise.all(
           userSubscriptions.map(async (subscription) => {
             try {
               await sendPushNotification(subscription, {
-                title: notification.title,
-                body: notification.body,
-                url: `/listing/${sourceListing.id}`,
+                title: userNotification.title,
+                body: userNotification.body,
+                url:
+                  recipientUserId === sourceListing.userId
+                    ? "/matches"
+                    : `/listing/${sourceListing.id}`,
                 tag: `stonefinder-match-${sourceListing.id}`,
               });
             } catch (caughtError) {

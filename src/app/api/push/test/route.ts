@@ -41,7 +41,6 @@ export async function POST() {
         title: "StoneFinder",
         body: "Тестове сповіщення працює. Наступним кроком підключимо збіги.",
         url: "/matches",
-        tag: "stonefinder-test",
       });
       delivered += 1;
     } catch (caughtError) {

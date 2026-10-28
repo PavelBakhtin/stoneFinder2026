@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { DeleteListingButton } from "@/components/listings/DeleteListingButton";
 import { FavoriteButton } from "@/components/listings/FavoriteButton";
 import { ListingGallery } from "@/components/listings/ListingGallery";
+import { MessageListingButton } from "@/components/messages/MessageListingButton";
 import { ShareButton } from "@/components/listings/ShareButton";
 import { ViewCounter } from "@/components/listings/ViewCounter";
 import { formatDimensions } from "@/lib/formatDimensions";
@@ -349,6 +350,13 @@ export default async function ListingPage({ params }: Props) {
               >
                 Подзвонити: {listing.phone}
               </a>
+
+              {!isOwner && (
+                <MessageListingButton
+                  listingId={listing.id}
+                  isAuthenticated={Boolean(user)}
+                />
+              )}
 
               <ShareButton />
             </div>

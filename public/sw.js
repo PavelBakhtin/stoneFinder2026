@@ -40,11 +40,14 @@ self.addEventListener("push", (event) => {
     body: payload.body || "У StoneFinder є нове сповіщення.",
     icon: "/icons/icon-192.png",
     badge: "/icons/icon-192.png",
-    tag: payload.tag || "stonefinder-notification",
     data: {
       url: payload.url || "/",
     },
   };
+
+  if (payload.tag) {
+    options.tag = payload.tag;
+  }
 
   event.waitUntil(self.registration.showNotification(title, options));
 });
