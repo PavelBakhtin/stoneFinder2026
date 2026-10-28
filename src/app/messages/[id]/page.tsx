@@ -73,6 +73,15 @@ export default async function ConversationPage({ params }: Props) {
       ? conversation.participant_user_id
       : conversation.listing_owner_user_id;
 
+  const { error: markReadError } = await supabase.rpc(
+    "mark_conversation_read",
+    { p_conversation_id: conversation.id },
+  );
+
+  if (markReadError) {
+    console.error("Не вдалося позначити повідомлення прочитаними", markReadError);
+  }
+
   const [profileResult, messagesResult] = await Promise.all([
     supabase
       .rpc("get_public_profile_by_id", { profile_id: otherUserId })

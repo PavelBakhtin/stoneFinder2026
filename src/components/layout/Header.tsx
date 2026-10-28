@@ -4,6 +4,7 @@ import {
   HeaderMobileNav,
   HeaderTopActions,
 } from "@/components/layout/HeaderClient";
+import { PushSubscriptionSync } from "@/components/pwa/PushSubscriptionSync";
 import { createClient } from "@/lib/supabase/server";
 
 export async function Header() {
@@ -14,6 +15,21 @@ export async function Header() {
   } = await supabase.auth.getUser();
 
   const isAuthenticated = Boolean(user);
+  let unreadMessagesCount = 0;
+
+  if (user) {
+    const { count, error } = await supabase
+      .from("messages")
+      .select("id", { count: "exact", head: true })
+      .eq("recipient_user_id", user.id)
+      .is("read_at", null);
+
+    if (error) {
+      console.error("Не вдалося порахувати непрочитані повідомлення", error);
+    } else {
+      unreadMessagesCount = count ?? 0;
+    }
+  }
 
   return (
     <header className="mb-4 border-b border-gray-200 pb-4 sm:mb-6 sm:pb-5">
@@ -30,10 +46,14 @@ export async function Header() {
           </p>
         </div>
 
-        <HeaderTopActions isAuthenticated={isAuthenticated} />
+        <HeaderTopActions
+          isAuthenticated={isAuthenticated}
+          unreadMessagesCount={unreadMessagesCount}
+        />
       </div>
 
       <HeaderMobileNav isAuthenticated={isAuthenticated} />
+      <PushSubscriptionSync isAuthenticated={isAuthenticated} />
     </header>
   );
 }

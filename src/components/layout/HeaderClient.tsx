@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 type Props = {
   isAuthenticated: boolean;
+  unreadMessagesCount?: number;
 };
 
 const desktopLinkClass =
@@ -21,7 +22,14 @@ function isAuthRoute(pathname: string) {
   );
 }
 
-export function HeaderTopActions({ isAuthenticated }: Props) {
+function formatUnreadCount(count: number) {
+  return count > 99 ? "99+" : String(count);
+}
+
+export function HeaderTopActions({
+  isAuthenticated,
+  unreadMessagesCount = 0,
+}: Props) {
   const pathname = usePathname();
   const hideLogin = isAuthRoute(pathname);
 
@@ -42,8 +50,16 @@ export function HeaderTopActions({ isAuthenticated }: Props) {
                 Збіги
               </Link>
 
-              <Link href="/messages" className={desktopLinkClass}>
-                Повідомлення
+              <Link
+                href="/messages"
+                className={`${desktopLinkClass} inline-flex items-center gap-1.5`}
+              >
+                <span>Повідомлення</span>
+                {unreadMessagesCount > 0 && (
+                  <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-black px-1.5 py-0.5 text-[11px] font-bold leading-none text-white">
+                    {formatUnreadCount(unreadMessagesCount)}
+                  </span>
+                )}
               </Link>
 
               <Link href="/favorites" className={desktopLinkClass}>
@@ -75,11 +91,20 @@ export function HeaderTopActions({ isAuthenticated }: Props) {
         {isAuthenticated && (
           <Link
             href="/messages"
-            aria-label="Повідомлення"
+            aria-label={
+              unreadMessagesCount > 0
+                ? `Повідомлення, непрочитаних: ${unreadMessagesCount}`
+                : "Повідомлення"
+            }
             title="Повідомлення"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg border text-lg transition hover:bg-gray-50"
+            className="relative inline-flex h-10 w-10 items-center justify-center rounded-lg border text-lg transition hover:bg-gray-50"
           >
             <span aria-hidden="true">💬</span>
+            {unreadMessagesCount > 0 && (
+              <span className="absolute -right-2 -top-2 inline-flex min-w-5 items-center justify-center rounded-full bg-black px-1.5 py-1 text-[10px] font-bold leading-none text-white ring-2 ring-white">
+                {formatUnreadCount(unreadMessagesCount)}
+              </span>
+            )}
           </Link>
         )}
 

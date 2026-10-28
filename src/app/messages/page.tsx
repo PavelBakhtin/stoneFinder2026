@@ -16,6 +16,10 @@ type PublicProfile = {
   display_name: string | null;
 };
 
+type UnreadMessageRow = {
+  conversation_id: string;
+};
+
 function formatUpdatedAt(value: string) {
   return new Intl.DateTimeFormat("uk-UA", {
     day: "2-digit",
@@ -24,6 +28,10 @@ function formatUpdatedAt(value: string) {
     minute: "2-digit",
     timeZone: "Europe/Kyiv",
   }).format(new Date(value));
+}
+
+function formatUnreadCount(count: number) {
+  return count > 99 ? "99+" : String(count);
 }
 
 export default async function MessagesPage() {
@@ -36,18 +44,38 @@ export default async function MessagesPage() {
     redirect("/login?next=/messages");
   }
 
-  const { data, error } = await supabase
-    .from("conversations")
-    .select(
-      "id, listing_id, listing_owner_user_id, participant_user_id, listing_title, updated_at",
-    )
-    .order("updated_at", { ascending: false });
+  const [conversationsResult, unreadResult] = await Promise.all([
+    supabase
+      .from("conversations")
+      .select(
+        "id, listing_id, listing_owner_user_id, participant_user_id, listing_title, updated_at",
+      )
+      .order("updated_at", { ascending: false }),
+    supabase
+      .from("messages")
+      .select("conversation_id")
+      .eq("recipient_user_id", user.id)
+      .is("read_at", null),
+  ]);
 
-  if (error) {
-    throw new Error(error.message);
+  if (conversationsResult.error) {
+    throw new Error(conversationsResult.error.message);
   }
 
-  const conversations = (data ?? []) as ConversationRow[];
+  if (unreadResult.error) {
+    throw new Error(unreadResult.error.message);
+  }
+
+  const conversations = (conversationsResult.data ?? []) as ConversationRow[];
+  const unreadCounts = new Map<string, number>();
+
+  for (const message of (unreadResult.data ?? []) as UnreadMessageRow[]) {
+    unreadCounts.set(
+      message.conversation_id,
+      (unreadCounts.get(message.conversation_id) ?? 0) + 1,
+    );
+  }
+
   const otherUserIds = [
     ...new Set(
       conversations.map((conversation) =>
@@ -108,6 +136,7 @@ export default async function MessagesPage() {
               conversation.listing_owner_user_id === user.id
                 ? conversation.participant_user_id
                 : conversation.listing_owner_user_id;
+            const unreadCount = unreadCounts.get(conversation.id) ?? 0;
 
             return (
               <Link
@@ -115,14 +144,25 @@ export default async function MessagesPage() {
                 href={`/messages/${conversation.id}`}
                 className={`block p-4 transition hover:bg-gray-50 sm:p-5 ${
                   index > 0 ? "border-t" : ""
-                }`}
+                } ${unreadCount > 0 ? "bg-stone-50" : ""}`}
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="font-semibold">
-                      {profileNames.get(otherUserId) || "Користувач"}
-                    </p>
-                    <p className="mt-1 truncate text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <p className={unreadCount > 0 ? "font-bold" : "font-semibold"}>
+                        {profileNames.get(otherUserId) || "Користувач"}
+                      </p>
+                      {unreadCount > 0 && (
+                        <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-black px-1.5 py-0.5 text-[11px] font-bold leading-none text-white">
+                          {formatUnreadCount(unreadCount)}
+                        </span>
+                      )}
+                    </div>
+                    <p
+                      className={`mt-1 truncate text-sm ${
+                        unreadCount > 0 ? "font-medium text-gray-900" : "text-gray-600"
+                      }`}
+                    >
                       {conversation.listing_title}
                     </p>
                     {!conversation.listing_id && (

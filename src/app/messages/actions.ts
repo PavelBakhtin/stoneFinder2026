@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
+import { notifyMessageRecipient } from "@/lib/messages/pushNotifications";
 import { createClient } from "@/lib/supabase/server";
 
 type ActionState = {
@@ -69,7 +70,13 @@ export async function startConversationAction(
     };
   }
 
+  await notifyMessageRecipient({
+    conversationId,
+    senderUserId: user.id,
+  });
+
   revalidatePath("/messages");
+  revalidatePath("/", "layout");
   redirect(`/messages/${conversationId}`);
 }
 
@@ -113,7 +120,13 @@ export async function sendMessageAction(
     };
   }
 
+  await notifyMessageRecipient({
+    conversationId,
+    senderUserId: user.id,
+  });
+
   revalidatePath("/messages");
   revalidatePath(`/messages/${conversationId}`);
+  revalidatePath("/", "layout");
   redirect(`/messages/${conversationId}`);
 }
